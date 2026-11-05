@@ -1,0 +1,5 @@
+# Không cho chạy mã PHP trong thư mục upload (chống upload độc hại)
+<FilesMatch "\.(php|phtml|php[0-9]|phar)$">
+    Require all denied
+</FilesMatch>
+Options -ExecCGI

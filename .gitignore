@@ -1,0 +1,10 @@
+# Ảnh do Admin tải lên khi chạy thử (giữ lại .htaccess)
+kiddozone/uploads/*
+!kiddozone/uploads/.htaccess
+
+# Cấu hình riêng từng máy (nếu tạo)
+kiddozone/includes/config.local.php
+
+.vscode/
+.idea/
+*.log
