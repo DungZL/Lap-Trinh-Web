@@ -1,0 +1,76 @@
+/* Giao diện header/footer trang khách (LTWCK-12) */
+:root {
+    --kz-sun: #FFC93C;
+    --kz-sun-dark: #E8A800;
+    --kz-sky: #1F6FEB;
+    --kz-ink: #23304A;
+    --kz-cream: #FFF8E5;
+}
+
+body { font-family: 'Nunito', system-ui, sans-serif; color: var(--kz-ink); }
+
+/* ---------- Header ---------- */
+.kz-header { background: #fff; border-bottom: 4px solid var(--kz-sun); }
+
+.kz-brand {
+    font-family: 'Fredoka', sans-serif;
+    font-weight: 600;
+    font-size: 1.6rem;
+    color: var(--kz-sky);
+}
+.kz-brand:hover { color: var(--kz-sky); }
+
+.kz-header .nav-link {
+    color: var(--kz-ink);
+    font-weight: 600;
+    border-radius: 999px;
+    padding: .4rem .9rem;
+}
+.kz-header .nav-link:hover { background: var(--kz-cream); }
+.kz-header .nav-link.active { background: var(--kz-sun); color: var(--kz-ink); }
+
+.kz-search .form-control { border-color: var(--kz-sun); border-radius: 999px 0 0 999px; }
+.kz-search .form-control:focus {
+    border-color: var(--kz-sun-dark);
+    box-shadow: 0 0 0 .2rem rgba(255, 201, 60, .35);
+}
+.kz-btn-search {
+    background: var(--kz-sun);
+    color: var(--kz-ink);
+    border: 1px solid var(--kz-sun);
+    border-radius: 0 999px 999px 0;
+}
+.kz-btn-search:hover { background: var(--kz-sun-dark); border-color: var(--kz-sun-dark); }
+
+.kz-btn-register {
+    background: var(--kz-sky);
+    color: #fff;
+    font-weight: 700;
+    border-radius: 999px;
+    padding: .4rem 1.1rem;
+}
+.kz-btn-register:hover { background: #1859BE; color: #fff; }
+
+.kz-cart { font-size: 1.5rem; line-height: 1; color: var(--kz-ink); padding: .25rem .4rem; }
+.kz-cart:hover { color: var(--kz-sky); }
+.kz-cart-badge {
+    position: absolute;
+    top: -2px;
+    right: -4px;
+    background: #E5484D;
+    font-size: .65rem;
+}
+
+/* ---------- Footer ---------- */
+.kz-footer { background: var(--kz-ink); color: #D9DFEC; }
+.kz-footer a { color: #D9DFEC; text-decoration: none; }
+.kz-footer a:hover { color: var(--kz-sun); text-decoration: underline; }
+.kz-footer .kz-brand { color: var(--kz-sun); }
+.kz-footer li { margin-bottom: .4rem; }
+.kz-footer-title {
+    font-family: 'Fredoka', sans-serif;
+    font-size: 1.05rem;
+    color: #fff;
+    margin-bottom: .75rem;
+}
+.kz-footer-bottom { background: #1A253A; }
