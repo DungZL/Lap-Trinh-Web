@@ -1,7 +1,19 @@
 <?php
+
 // Header tối ưu giao diện web bán hàng
 $pageTitle = $pageTitle ?? 'KiddoZone';
 $user = current_user();
+
+// Trang hiện tại, dùng để tô sáng mục menu đang mở.
+$currentPage = basename($_SERVER['SCRIPT_NAME']);
+
+// Số sản phẩm trong giỏ. Hàm cart_count() sẽ do task giỏ hàng (F19) định nghĩa; chưa có thì hiện 0.
+$cartCount = function_exists('cart_count') ? (int) cart_count() : 0;
+
+$menu = [
+    'index.php'    => 'Trang chủ',
+    'products.php' => 'Sản phẩm',
+];
 ?>
 <!DOCTYPE html>
 <html lang="vi">
@@ -9,7 +21,6 @@ $user = current_user();
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title><?= e($pageTitle) ?> | KiddoZone</title>
-    
     <!-- Thư viện Bootstrap -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
