@@ -29,7 +29,7 @@ if (!function_exists('render_product_card')) {
             <div class="card kz-product h-100 <?= $soldOut ? 'kz-sold-out' : '' ?>">
                 <div class="kz-product-img ratio ratio-1x1">
                     <img src="<?= e(product_image_url($p['image'] ?? null)) ?>" alt="<?= e($p['name']) ?>"
-                         loading="lazy" onerror="this.onerror=null;this.src='<?= e($fallback) ?>'">
+                         loading="lazy" data-fallback="<?= e($fallback) ?>">
                 </div>
                 <?php if ($soldOut): ?>
                     <span class="kz-badge kz-badge-out">Hết hàng</span>

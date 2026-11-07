@@ -107,7 +107,7 @@ require __DIR__ . '/includes/header.php';
                placeholder="Tìm theo tên sản phẩm" aria-label="Tìm theo tên sản phẩm" value="<?= e($q) ?>">
     </div>
     <div class="col-8 col-md-auto">
-        <select class="form-select" name="sort" aria-label="Sắp xếp" onchange="this.form.submit()">
+        <select class="form-select" name="sort" aria-label="Sắp xếp" data-autosubmit>
             <?php foreach ($sortOptions as $key => $opt): ?>
                 <option value="<?= e($key) ?>" <?= $sort === $key ? 'selected' : '' ?>><?= e($opt[0]) ?></option>
             <?php endforeach; ?>

@@ -160,7 +160,7 @@ require __DIR__ . '/includes/header.php';
     <div class="col-md-6">
         <div class="kz-gallery-main ratio ratio-1x1">
             <img id="kz-main-img" src="<?= e($imageUrls[0]) ?>" alt="<?= e($product['name']) ?>"
-                 onerror="this.onerror=null;this.src='<?= e($fallbackImg) ?>'">
+                 data-fallback="<?= e($fallbackImg) ?>">
         </div>
         <?php if (count($imageUrls) > 1): ?>
             <div class="kz-thumbs">
@@ -168,7 +168,7 @@ require __DIR__ . '/includes/header.php';
                     <button type="button" class="kz-thumb <?= $i === 0 ? 'active' : '' ?>"
                             data-src="<?= e($src) ?>" aria-label="Xem ảnh <?= $i + 1 ?>">
                         <img src="<?= e($src) ?>" alt="" loading="lazy"
-                             onerror="this.onerror=null;this.src='<?= e($fallbackImg) ?>'">
+                             data-fallback="<?= e($fallbackImg) ?>">
                     </button>
                 <?php endforeach; ?>
             </div>
@@ -227,20 +227,5 @@ require __DIR__ . '/includes/header.php';
         <p class="text-muted">Chưa có mô tả cho sản phẩm này.</p>
     <?php endif; ?>
 </section>
-
-<script>
-// Bấm ảnh nhỏ thì đổi ảnh lớn.
-(function () {
-    var main = document.getElementById('kz-main-img');
-    var thumbs = document.querySelectorAll('.kz-thumb');
-    thumbs.forEach(function (btn) {
-        btn.addEventListener('click', function () {
-            main.src = btn.getAttribute('data-src');
-            thumbs.forEach(function (b) { b.classList.remove('active'); });
-            btn.classList.add('active');
-        });
-    });
-})();
-</script>
 
 <?php require __DIR__ . '/includes/footer.php'; ?>
