@@ -1,0 +1,345 @@
+* {
+    box-sizing: border-box;
+}
+
+body {
+    background-color: #e0f2fe; /* Màu nền xanh nhạt bên ngoài */
+}
+
+.auth-page {
+    min-height: 80vh;
+    padding: 40px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.auth-container {
+    width: 100%;
+    max-width: 1050px;
+    min-height: 620px;
+    background: #fff;
+    border-radius: 20px;
+    overflow: hidden;
+    display: grid;
+    grid-template-columns: 1.15fr 1fr; /* Tỉ lệ vàng cho 2 cột */
+    box-shadow: 0 15px 50px rgba(20, 45, 90, 0.15);
+}
+
+/* =========================================
+   CỘT TRÁI: BANNER ẢNH VÀ CHỮ
+   ========================================= */
+.auth-image-section {
+    position: relative;
+    background: url('../img/banner-bg.png') no-repeat center center;
+    
+    /* THAY ĐỔI Ở DÒNG NÀY */
+    background-size: 100% 100%; /* Kéo giãn ảnh vừa khít khung, không bị cắt xén */
+    
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 40px;
+    color: #fff;
+}
+.banner-content {
+    position: relative;
+    z-index: 2;
+}
+
+.brand-logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 28px;
+    font-weight: 900;
+    margin-bottom: 30px;
+    text-shadow: 1px 1px 3px rgba(0,0,0,0.2);
+}
+
+.brand-logo > span:last-child span {
+    color: #ffd84d;
+}
+
+.brand-icon {
+    width: 45px;
+    height: 45px;
+    border-radius: 12px;
+    background: #ffd84d;
+    color: #1d4ed8;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+}
+
+.banner-label {
+    display: inline-block;
+    padding: 8px 15px;
+    border-radius: 30px;
+    background: rgba(255,255,255,0.25);
+    backdrop-filter: blur(5px);
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: 1px;
+    margin-bottom: 15px;
+}
+
+.banner-title {
+    font-size: 44px;
+    line-height: 1.15;
+    font-weight: 900;
+    margin: 0 0 15px 0;
+    text-shadow: 2px 2px 5px rgba(0,0,0,0.3);
+}
+
+.banner-title span {
+    color: #ffd84d;
+}
+
+.banner-text {
+    max-width: 90%;
+    color: #fff;
+    line-height: 1.6;
+    font-size: 15px;
+    margin-bottom: 25px;
+    text-shadow: 1px 1px 4px rgba(0,0,0,0.4);
+}
+
+.toy-decoration {
+    display: flex;
+    gap: 12px;
+}
+
+.toy-decoration span {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(5px); 
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 30px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+}
+
+/* Dải băng vàng dưới cùng */
+.banner-bottom {
+    position: relative;
+    z-index: 2;
+    align-self: center;
+    background: #ffd84d;
+    color: #1e3a8a;
+    padding: 10px 30px;
+    border-radius: 30px;
+    font-size: 13px;
+    font-weight: 900;
+    letter-spacing: 2px;
+    transform: rotate(-2deg);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+    margin-bottom: 10px;
+}
+
+/* =========================================
+   CỘT PHẢI: FORM ĐĂNG NHẬP
+   ========================================= */
+.auth-form-section {
+    padding: 50px 60px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.welcome-label {
+    color: #3b82f6;
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: 1.5px;
+    text-align: center;
+    display: block;
+}
+
+.auth-heading h1 {
+    margin: 10px 0;
+    color: #1e3a8a;
+    font-size: 36px;
+    font-weight: 900;
+    text-align: center;
+}
+
+.auth-heading p {
+    color: #64748b;
+    font-size: 14px;
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.form-group { margin-bottom: 20px; }
+.form-group label {
+    display: block;
+    margin-bottom: 8px;
+    color: #334155;
+    font-size: 14px;
+    font-weight: 700;
+}
+
+.auth-input {
+    width: 100%;
+    height: 50px;
+    padding: 0 15px;
+    border: 1px solid #cbd5e1;
+    border-radius: 10px;
+    outline: none;
+    font-size: 14px;
+    transition: 0.2s;
+    background: #f8fafc;
+}
+
+.auth-input:focus {
+    border-color: #3b82f6;
+    background: #fff;
+    box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
+}
+
+.password-wrapper { position: relative; }
+.toggle-password {
+    position: absolute;
+    top: 50%;
+    right: 15px;
+    transform: translateY(-50%);
+    border: none;
+    background: none;
+    color: #3b82f6;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.auth-options {
+    display: flex;
+    justify-content: flex-start;
+    margin: 5px 0 25px;
+}
+
+.secure-note {
+    color: #16a34a; 
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.btn-login {
+    width: 100%;
+    height: 52px;
+    border: none;
+    border-radius: 10px;
+    background: #ffd84d;
+    color: #1e3a8a;
+    font-size: 15px;
+    font-weight: 900;
+    letter-spacing: 1px;
+    cursor: pointer;
+    transition: 0.2s;
+    box-shadow: 0 4px 10px rgba(255, 216, 77, 0.4);
+}
+
+.btn-login:hover {
+    background: #facc15;
+    transform: translateY(-2px);
+}
+
+.auth-register {
+    margin-top: 25px;
+    text-align: center;
+    font-size: 14px;
+    color: #64748b;
+}
+
+.auth-register a {
+    color: #3b82f6;
+    font-weight: 700;
+    text-decoration: none;
+}
+
+.auth-support {
+    margin-top: 30px;
+    padding: 15px;
+    background: #eff6ff;
+    border-radius: 10px;
+    color: #3b82f6;
+    text-align: center;
+    font-size: 12px;
+    line-height: 1.5;
+}
+
+.auth-alert {
+    padding: 12px 15px;
+    margin-bottom: 20px;
+    border-radius: 10px;
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+    color: #dc2626;
+    font-size: 14px;
+    font-weight: 600;
+    text-align: center;
+}
+
+.field-error {
+    display: block;
+    margin-top: 5px;
+    color: #dc2626;
+    font-size: 12px;
+}
+
+@media (max-width: 900px) {
+    .auth-container { grid-template-columns: 1fr; }
+    .auth-image-section { min-height: 550px; padding: 30px; }
+    .banner-title { font-size: 32px; }
+}
+/* =========================================
+   CSS CHO ICON NẰM TRONG Ô INPUT
+   ========================================= */
+
+/* Tạo khung bao bọc để icon và input nằm chung một hàng */
+.input-icon-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+    width: 100%;
+}
+
+/* Định vị icon nằm bên trong, sát lề trái */
+.input-icon-wrapper > i {
+    position: absolute;
+    left: 16px;
+    color: #94a3b8; /* Màu xám nhạt */
+    font-size: 16px;
+    pointer-events: none; /* Giúp click xuyên qua icon vào ô input */
+    z-index: 2;
+}
+
+/* Đẩy chữ trong ô input sang phải để không bị icon che khuất */
+.input-icon-wrapper .auth-input {
+    padding-left: 45px; 
+    width: 100%;
+}
+
+/* Nút hiện/ẩn mật khẩu (chứa icon con mắt) nằm sát lề phải */
+.input-icon-wrapper .toggle-password {
+    position: absolute;
+    right: 16px;
+    background: none;
+    border: none;
+    color: #94a3b8;
+    font-size: 16px;
+    cursor: pointer;
+    padding: 0;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.input-icon-wrapper .toggle-password:hover {
+    color: #3b82f6;
+}
