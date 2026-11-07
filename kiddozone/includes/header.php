@@ -1,6 +1,6 @@
 <?php
-// Header trang khách (task LTWCK-12): menu thu gọn trên mobile, ô tìm kiếm, giỏ hàng, menu theo đăng nhập.
-// Cách dùng: $pageTitle = 'Tên trang'; require __DIR__ . '/header.php';
+
+// Header tối ưu giao diện web bán hàng
 $pageTitle = $pageTitle ?? 'KiddoZone';
 $user = current_user();
 
@@ -21,100 +21,200 @@ $menu = [
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title><?= e($pageTitle) ?> | KiddoZone</title>
-    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+    <!-- Thư viện Bootstrap -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
-    <link href="<?= e(url('assets/css/header-footer.css')) ?>" rel="stylesheet">
-    <link href="<?= e(url('assets/css/shop.css')) ?>" rel="stylesheet">
+    
+    <!-- Tùy chỉnh CSS cho Header -->
+    <style>
+        .header-top {
+            background: linear-gradient(90deg, #3a64da, #6f9ce6);
+            color: white;
+            font-size: 13px;
+            padding: 5px 0;
+        }
+        .header-main {
+            background-color: #fff;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            padding: 15px 0;
+        }
+        .brand-logo {
+            font-size: 28px;
+            font-weight: 900;
+            color: #1e3a8a;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .brand-logo span { color: #f59e0b; }
+        
+        /* Thanh tìm kiếm */
+        .search-box {
+            position: relative;
+            width: 100%;
+        }
+        .search-box input {
+            border-radius: 50px;
+            padding: 10px 20px 10px 45px;
+            border: 2px solid #3b82f6;
+            background-color: #f8fafc;
+        }
+        .search-box input:focus {
+            box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
+            background-color: #fff;
+        }
+        .search-box i {
+            position: absolute;
+            left: 18px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #3b82f6;
+            font-size: 18px;
+        }
+        
+        /* Icon giỏ hàng và tài khoản */
+        .action-icon {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #334155;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 14px;
+            transition: 0.2s;
+        }
+        .action-icon:hover { color: #3b82f6; }
+        .action-icon i { font-size: 22px; }
+        
+        .cart-icon-wrapper {
+            position: relative;
+        }
+        .cart-badge {
+            position: absolute;
+            top: -6px;
+            right: -10px;
+            background: #ef4444;
+            color: white;
+            font-size: 11px;
+            font-weight: bold;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Menu danh mục */
+        .nav-category {
+            background-color: #f3de65;
+            border-bottom: 1px solid #e5e9ee;
+        }
+        .nav-category .nav-link {
+            color: #f5f1f1;
+            font-weight: 600;
+            padding: 12px 20px;
+            font-size: 15px;
+        }
+        .nav-category .nav-link:hover { color: #3b82f6; }
+    </style>
 </head>
-<body>
-<header class="kz-header sticky-top">
-    <nav class="navbar navbar-expand-lg">
-        <div class="container">
+<body class="bg-light">
 
-            <a class="navbar-brand kz-brand" href="<?= e(url('index.php')) ?>">KiddoZone</a>
+<!-- Thanh chào mừng trên cùng -->
+<div class="header-top">
+    <div class="container d-flex justify-content-between">
+        <span><i class="bi bi-telephone-fill me-1"></i> Hotline: 1900 1234</span>
+        <span>Miễn phí giao hàng cho đơn từ 500k</span>
+    </div>
+</div>
 
-            <!-- Giỏ hàng + nút hamburger luôn hiện trên thanh trên cùng, kể cả mobile -->
-            <div class="d-flex align-items-center gap-2 order-lg-last">
-                <?php if (!is_admin()): ?>
-                    <a class="kz-cart position-relative" href="<?= e(url('cart.php')) ?>"
-                       aria-label="Giỏ hàng, <?= $cartCount ?> sản phẩm">
-                        <i class="bi bi-cart3"></i>
-                        <span class="kz-cart-badge badge rounded-pill" <?= $cartCount > 0 ? '' : 'hidden' ?>><?= $cartCount ?></span>
+<!-- Phần Header chính -->
+<div class="header-main">
+    <div class="container">
+        <div class="row align-items-center">
+            <!-- Logo -->
+            <div class="col-md-3">
+                <a href="<?= e(url('index.php')) ?>" class="brand-logo">
+                    <i class="bi bi-star-fill" style="color: #f59e0b;"></i> Kiddo<span>Zone</span>
+                </a>
+            </div>
+            
+            <!-- Thanh tìm kiếm -->
+            <div class="col-md-5 my-3 my-md-0">
+                <form class="search-box" action="<?= e(url('index.php')) ?>" method="GET">
+                    <i class="bi bi-search"></i>
+                    <input type="text" name="search" class="form-control" placeholder="Tìm kiếm đồ chơi, xe cộ, búp bê...">
+                </form>
+            </div>
+            
+            <!-- Tài khoản & Giỏ hàng -->
+            <div class="col-md-4 d-flex justify-content-md-end align-items-center gap-4">
+                <?php if ($user): ?>
+                    <div class="dropdown">
+                        <a href="#" class="action-icon dropdown-toggle" data-bs-toggle="dropdown">
+                            <i class="bi bi-person-circle"></i>
+                            <div>
+                                <div style="font-size: 11px; color: #64748b;">Xin chào</div>
+                                <div><?= e($user['full_name']) ?></div>
+                            </div>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <?php if (is_admin()): ?>
+                                <li><a class="dropdown-item" href="<?= e(url('admin/index.php')) ?>">Trang Quản Trị</a></li>
+                            <?php endif; ?>
+                            <li>
+                                <form method="post" action="<?= e(url('logout.php')) ?>" class="m-0">
+                                    <?= csrf_field() ?>
+                                    <button type="submit" class="dropdown-item text-danger">Đăng xuất</button>
+                                </form>
+                            </li>
+                        </ul>
+                    </div>
+                <?php else: ?>
+                    <a href="<?= e(url('login.php')) ?>" class="action-icon">
+                        <i class="bi bi-person-circle"></i>
+                        <div>
+                            <div style="font-size: 11px; color: #64748b;">Tài khoản</div>
+                            <div>Đăng nhập</div>
+                        </div>
                     </a>
                 <?php endif; ?>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
-                        data-bs-target="#nav" aria-controls="nav" aria-expanded="false" aria-label="Mở menu">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
-            </div>
-
-            <div class="collapse navbar-collapse" id="nav">
-
-                <ul class="navbar-nav me-lg-3 mb-2 mb-lg-0">
-                    <?php foreach ($menu as $file => $label): ?>
-                        <li class="nav-item">
-                            <a class="nav-link <?= $currentPage === $file ? 'active' : '' ?>"
-                               <?= $currentPage === $file ? 'aria-current="page"' : '' ?>
-                               href="<?= e(url($file)) ?>"><?= e($label) ?></a>
-                        </li>
-                    <?php endforeach; ?>
-                </ul>
-
-                <!-- Ô tìm kiếm: gửi từ khóa q tới trang sản phẩm -->
-                <form class="kz-search flex-grow-1 me-lg-3 mb-3 mb-lg-0" role="search"
-                      action="<?= e(url('products.php')) ?>" method="get">
-                    <div class="input-group">
-                        <input class="form-control" type="search" name="q" maxlength="100"
-                               placeholder="Tìm đồ chơi cho bé" aria-label="Tìm kiếm sản phẩm"
-                               value="<?= e($_GET['q'] ?? '') ?>">
-                        <button class="btn kz-btn-search" type="submit" aria-label="Tìm">
-                            <i class="bi bi-search"></i>
-                        </button>
+                
+                <a href="#" class="action-icon cart-icon-wrapper">
+                    <i class="bi bi-cart3"></i>
+                    <span class="cart-badge">0</span>
+                    <div class="ms-2">
+                        <div style="font-size: 11px; color: #64748b;">Giỏ hàng</div>
+                        <div>0 sản phẩm</div>
                     </div>
-                </form>
-
-                <!-- Menu theo trạng thái đăng nhập -->
-                <ul class="navbar-nav ms-lg-auto align-items-lg-center">
-                    <?php if ($user): ?>
-                        <?php if (is_admin()): ?>
-                            <li class="nav-item">
-                                <a class="nav-link" href="<?= e(url('admin/index.php')) ?>">Quản trị</a>
-                            </li>
-                        <?php endif; ?>
-                        <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle" href="#" role="button"
-                               data-bs-toggle="dropdown" aria-expanded="false">
-                                <i class="bi bi-person-circle"></i> <?= e($user['full_name']) ?>
-                            </a>
-                            <ul class="dropdown-menu dropdown-menu-lg-end">
-                                <?php if (!is_admin()): ?>
-                                    <!-- TODO: đối chiếu tên file thật trong thư mục account/ -->
-                                    <li><a class="dropdown-item" href="<?= e(url('account/index.php')) ?>">Tài khoản của tôi</a></li>
-                                    <li><a class="dropdown-item" href="<?= e(url('account/orders.php')) ?>">Đơn hàng của tôi</a></li>
-                                    <li><hr class="dropdown-divider"></li>
-                                <?php endif; ?>
-                                <li>
-                                    <form method="post" action="<?= e(url('logout.php')) ?>" class="m-0">
-                                        <?= csrf_field() ?>
-                                        <button class="dropdown-item" type="submit">Đăng xuất</button>
-                                    </form>
-                                </li>
-                            </ul>
-                        </li>
-                    <?php else: ?>
-                        <li class="nav-item"><a class="nav-link" href="<?= e(url('login.php')) ?>">Đăng nhập</a></li>
-                        <li class="nav-item ms-lg-1">
-                            <a class="btn kz-btn-register" href="<?= e(url('register.php')) ?>">Đăng ký</a>
-                        </li>
-                    <?php endif; ?>
-                </ul>
-
+                </a>
             </div>
         </div>
-    </nav>
-</header>
+    </div>
+</div>
+
+<!-- Menu danh mục -->
+<div class="nav-category shadow-sm">
+    <div class="container">
+        <ul class="nav justify-content-center">
+            <li class="nav-item"><a class="nav-link" href="<?= e(url('index.php')) ?>"><i class="bi bi-house-door me-1"></i> Trang chủ</a></li>
+            <li class="nav-item"><a class="nav-link" href="#">Đồ chơi giáo dục</a></li>
+            <li class="nav-item"><a class="nav-link" href="#">Lắp ráp & Xếp hình</a></li>
+            <li class="nav-item"><a class="nav-link" href="#">Búp bê & Thú bông</a></li>
+            <li class="nav-item"><a class="nav-link" href="#">Xe & Mô hình</a></li>
+            <li class="nav-item"><a class="nav-link text-danger fw-bold" href="#"><i class="bi bi-fire"></i> Khuyến mãi</a></li>
+        </ul>
+    </div>
+</div>
+
+<!-- Vùng chứa nội dung chính -->
 <main class="container py-4">
-<?php foreach (flash_pull() as $f): ?>
-    <div class="alert alert-<?= e($f['type']) ?>"><?= e($f['message']) ?></div>
-<?php endforeach; ?>
+    <!-- Hiển thị thông báo (flash message) -->
+    <?php foreach (flash_pull() as $f): ?>
+        <div class="alert alert-<?= e($f['type']) ?> alert-dismissible fade show">
+            <?= e($f['message']) ?>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    <?php endforeach; ?>
