@@ -199,3 +199,59 @@
 .kz-sold-out .card-body {
     opacity: .55;
 }
+
+/* ---------- Trang danh sách sản phẩm (F04) ---------- */
+.kz-pills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .5rem;
+    padding: 0;
+    margin: 0 0 1rem;
+    list-style: none;
+}
+
+.kz-pill {
+    display: inline-block;
+    padding: .4rem 1rem;
+    background: #fff;
+    border: 2px solid var(--kz-sun);
+    border-radius: 999px;
+    color: var(--kz-ink);
+    font-weight: 700;
+    text-decoration: none;
+}
+
+    .kz-pill:hover {
+        background: var(--kz-cream);
+        color: var(--kz-ink);
+    }
+
+    .kz-pill.active {
+        background: var(--kz-sun);
+        color: var(--kz-ink);
+    }
+
+.kz-toolbar .form-control,
+.kz-toolbar .form-select {
+    border-color: var(--kz-sun);
+    border-radius: 999px;
+}
+
+    .kz-toolbar .form-control:focus,
+    .kz-toolbar .form-select:focus {
+        border-color: var(--kz-sun-dark);
+        box-shadow: 0 0 0 .2rem rgba(255, 201, 60, .35);
+    }
+
+.kz-btn-filter {
+    background: var(--kz-sky);
+    color: #fff;
+    font-weight: 700;
+    border-radius: 999px;
+    padding: .4rem 1.2rem;
+}
+
+    .kz-btn-filter:hover {
+        background: #1859BE;
+        color: #fff;
+    }
