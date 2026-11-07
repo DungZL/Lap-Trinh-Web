@@ -255,3 +255,86 @@
         background: #1859BE;
         color: #fff;
     }
+
+/* ---------- Trang chi tiết sản phẩm (F05) ---------- */
+.kz-gallery-main {
+    background: var(--kz-cream);
+    border: 1px solid #E8ECF3;
+    border-radius: 1rem;
+    overflow: hidden;
+}
+
+    .kz-gallery-main img {
+        object-fit: contain;
+    }
+
+.kz-thumbs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .5rem;
+    margin-top: .75rem;
+}
+
+.kz-thumb {
+    width: 72px;
+    height: 72px;
+    padding: 0;
+    background: var(--kz-cream);
+    border: 2px solid transparent;
+    border-radius: .75rem;
+    overflow: hidden;
+    cursor: pointer;
+}
+
+    .kz-thumb img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .kz-thumb:hover {
+        border-color: var(--kz-sun);
+    }
+
+    .kz-thumb.active {
+        border-color: var(--kz-sky);
+    }
+
+.kz-detail-title {
+    font-family: 'Fredoka', sans-serif;
+    font-weight: 600;
+    font-size: clamp(1.5rem, 3vw, 2.1rem);
+    line-height: 1.2;
+    margin: .25rem 0 1rem;
+}
+
+.kz-detail-price {
+    font-size: 1.9rem;
+    font-weight: 800;
+    color: #D6336C;
+}
+
+.kz-detail-sale {
+    background: #E5484D;
+    font-size: .85rem;
+    vertical-align: middle;
+}
+
+.kz-qty {
+    width: 110px;
+}
+
+.kz-description {
+    line-height: 1.7;
+    overflow-wrap: anywhere;
+}
+
+    .kz-description img {
+        border-radius: .5rem;
+    }
+
+    .kz-description table {
+        max-width: 100%;
+        display: block;
+        overflow-x: auto;
+    }
