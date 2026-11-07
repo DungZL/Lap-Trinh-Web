@@ -78,6 +78,31 @@ function effective_price(array $product): float
         : (float)$product['price'];
 }
 
+/** Giỏ session lưu số lượng theo ID sản phẩm, không lưu dữ liệu giá do client gửi lên. */
+function session_cart(): array
+{
+    $cart = $_SESSION['cart'] ?? [];
+    if (!is_array($cart)) {
+        return [];
+    }
+
+    $items = [];
+    foreach ($cart as $productId => $quantity) {
+        $id = filter_var($productId, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
+        $qty = filter_var($quantity, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
+        if ($id !== false && $qty !== false) {
+            $items[$id] = $qty;
+        }
+    }
+    $_SESSION['cart'] = $items;
+    return $items;
+}
+
+function cart_item_count(): int
+{
+    return array_sum(session_cart());
+}
+
 /* ---------- Phân trang ---------- */
 
 /**

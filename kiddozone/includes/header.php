@@ -1,5 +1,5 @@
 <?php
-// Header tạm (khung cơ bản) - task "Layout header/footer" sẽ làm đẹp và bổ sung giỏ hàng, tìm kiếm.
+// Header chung cho trang khách và admin.
 // Cách dùng: $pageTitle = 'Tên trang'; require __DIR__ . '/header.php';
 $pageTitle = $pageTitle ?? 'KiddoZone';
 $user = current_user();
@@ -22,6 +22,12 @@ $user = current_user();
         </button>
         <div class="collapse navbar-collapse" id="nav">
             <ul class="navbar-nav ms-auto align-items-lg-center gap-lg-2">
+                <li class="nav-item">
+                    <a class="nav-link" href="<?= e(url('cart.php')) ?>">
+                        <i class="bi bi-cart3" aria-hidden="true"></i> Giỏ hàng
+                        <span class="badge text-bg-primary"><?= cart_item_count() ?></span>
+                    </a>
+                </li>
                 <?php if ($user): ?>
                     <li class="nav-item"><span class="nav-link"><?= e($user['full_name']) ?></span></li>
                     <?php if (is_admin()): ?>

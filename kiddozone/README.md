@@ -17,13 +17,14 @@ Tài khoản mẫu: `admin@kiddozone.test` / `Admin@123`; khách: `khach1@kiddoz
 - Thông báo: `flash('success'|'danger'|'warning', '...')`, header tự hiển thị.
 - Phân trang: `[$offset, $pages, $page] = paginate($total, ITEMS_PER_PAGE_SHOP);` rồi `LIMIT <int> OFFSET <int>`, in thanh phân trang bằng `render_pagination($page, $pages)` (giữ nguyên bộ lọc).
 - Giá: `format_price($x)`; giá đang bán: `effective_price($product)`.
+- Giỏ hàng khách vãng lai lưu trong `$_SESSION['cart']` theo dạng `product_id => quantity`; thao tác thêm, cập nhật và xóa thực hiện bằng POST có CSRF tại `cart.php`.
 - Upload ảnh: `save_uploaded_image($file)` (kiểm MIME, tối đa 2MB, tên ngẫu nhiên).
 - Giỏ hàng khi đăng nhập: định nghĩa hàm `merge_session_cart(int $userId)` (task F19), `login_user()` sẽ tự gọi.
 
 ## Cấu trúc
 ```
 kiddozone/
-├── index.php, login.php, register.php, logout.php   (index là trang giữ chỗ, F03 sẽ thay)
+├── index.php, cart.php, login.php, register.php, logout.php
 ├── admin/            trang quản trị (index.php là giữ chỗ)
 ├── includes/         init, config, db, functions, auth, header, footer
 ├── assets/           css/, js/, img/
