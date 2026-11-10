@@ -5,39 +5,41 @@ if (is_logged_in()) {
     redirect(is_admin() ? 'admin/index.php' : 'index.php');
 }
 
-$error = null;
+$errors = [];
 
 if (is_post()) {
     csrf_verify();
-    
-   
-    $error = attempt_register(
-        $_POST['full_name'] ?? '',
-        $_POST['email'] ?? '',
-        $_POST['password'] ?? '',
-        $_POST['confirm_password'] ?? ''
-    );
 
-    if ($error === null) {
-        // Đăng ký thành công thì chuyển về trang đăng nhập
-        redirect('login.php?registered=1');
+    // register_customer() (includes/auth.php) kiểm tra dữ liệu, trùng email và tạo tài khoản khách hàng.
+    $errors = register_customer([
+        'full_name'        => $_POST['full_name'] ?? '',
+        'email'            => $_POST['email'] ?? '',
+        'password'         => $_POST['password'] ?? '',
+        'password_confirm' => $_POST['confirm_password'] ?? '',
+    ]);
+
+    if (!$errors) {
+        // Đăng ký thành công thì chuyển về trang đăng nhập kèm thông báo.
+        flash('success', 'Đăng ký thành công! Vui lòng đăng nhập để tiếp tục.');
+        redirect('login.php');
     }
 }
 
-$pageTitle = 'Đăng ký | KiddoZone';
+$pageTitle = 'Đăng ký';
+$extraCss = [
+    url('assets/css/auth.css'),
+    'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css',
+];
 require __DIR__ . '/includes/header.php';
 ?>
 
-<link rel="stylesheet" href="assets/css/auth.css">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-
-<main class="auth-page">
+<div class="auth-page">
     <div class="auth-container">
         
         <!-- CỘT TRÁI: BANNER MÀU XANH CHỨA CHỮ VÀ ẢNH -->
         <div class="auth-image-section">
             <div class="banner-content">
-                <div class="brand-logo">
+                <div class="auth-brand">
                     <span class="brand-icon">K</span>
                     <span>Kiddo<span>Zone</span></span>
                 </div>
@@ -69,9 +71,11 @@ require __DIR__ . '/includes/header.php';
                 <p>Tạo tài khoản để cùng bé yêu khám phá KiddoZone!</p>
             </div>
 
-            <?php if ($error): ?>
+            <?php if ($errors): ?>
                 <div class="auth-alert" role="alert">
-                    <i class="fa-solid fa-triangle-exclamation"></i> <?= e($error) ?>
+                    <?php foreach ($errors as $err): ?>
+                        <div><i class="fa-solid fa-triangle-exclamation"></i> <?= e($err) ?></div>
+                    <?php endforeach; ?>
                 </div>
             <?php endif; ?>
 
@@ -123,11 +127,11 @@ require __DIR__ . '/includes/header.php';
             </form>
 
             <div class="auth-register" style="margin-top: 20px;">
-                Đã có tài khoản? <a href="login.php">Đăng nhập ngay</a>
+                Đã có tài khoản? <a href="<?= e(url('login.php')) ?>">Đăng nhập ngay</a>
             </div>
         </div>
     </div>
-</main>
+</div>
 
-<script src="assets/js/auth.js"></script>
+<script src="<?= e(url('assets/js/auth.js')) ?>"></script>
 <?php require __DIR__ . '/includes/footer.php'; ?>

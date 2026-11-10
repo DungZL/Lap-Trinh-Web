@@ -1,19 +1,21 @@
 <?php
-
-// Header tối ưu giao diện web bán hàng
+// Header trang khách. Trang gọi: đặt $pageTitle rồi require __DIR__ . '/includes/header.php';
 $pageTitle = $pageTitle ?? 'KiddoZone';
 $user = current_user();
 
 // Trang hiện tại, dùng để tô sáng mục menu đang mở.
 $currentPage = basename($_SERVER['SCRIPT_NAME']);
 
-// Số sản phẩm trong giỏ. Hàm cart_count() sẽ do task giỏ hàng (F19) định nghĩa; chưa có thì hiện 0.
-$cartCount = function_exists('cart_count') ? (int) cart_count() : 0;
+// Số sản phẩm trong giỏ. Hàm cart_count() sẽ do task giỏ hàng (F06/F19) định nghĩa; chưa có thì hiện 0.
+$cartCount = function_exists('cart_count') ? (int)cart_count() : 0;
 
-$menu = [
-    'index.php'    => 'Trang chủ',
-    'products.php' => 'Sản phẩm',
-];
+// Menu danh mục lấy từ CSDL (chỉ danh mục đang hiển thị).
+$navCategories = db_query('SELECT id, name FROM categories WHERE status = 1 ORDER BY id LIMIT 6')->fetchAll();
+$navCategoryId = ($currentPage === 'products.php' && is_string($_GET['category'] ?? null)) ? (int)$_GET['category'] : 0;
+$navSale       = $currentPage === 'products.php' && ($_GET['sale'] ?? '') === '1';
+
+// Giữ lại từ khóa trong ô tìm kiếm khi đang ở trang sản phẩm.
+$searchValue = ($currentPage === 'products.php' && is_string($_GET['q'] ?? null)) ? $_GET['q'] : '';
 ?>
 <!DOCTYPE html>
 <html lang="vi">
@@ -21,104 +23,16 @@ $menu = [
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title><?= e($pageTitle) ?> | KiddoZone</title>
-    <!-- Thư viện Bootstrap -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
-    
-    <!-- Tùy chỉnh CSS cho Header -->
-    <style>
-        .header-top {
-            background: linear-gradient(90deg, #3a64da, #6f9ce6);
-            color: white;
-            font-size: 13px;
-            padding: 5px 0;
-        }
-        .header-main {
-            background-color: #fff;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-            padding: 15px 0;
-        }
-        .brand-logo {
-            font-size: 28px;
-            font-weight: 900;
-            color: #1e3a8a;
-            text-decoration: none;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        .brand-logo span { color: #f59e0b; }
-        
-        /* Thanh tìm kiếm */
-        .search-box {
-            position: relative;
-            width: 100%;
-        }
-        .search-box input {
-            border-radius: 50px;
-            padding: 10px 20px 10px 45px;
-            border: 2px solid #3b82f6;
-            background-color: #f8fafc;
-        }
-        .search-box input:focus {
-            box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
-            background-color: #fff;
-        }
-        .search-box i {
-            position: absolute;
-            left: 18px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: #3b82f6;
-            font-size: 18px;
-        }
-        
-        /* Icon giỏ hàng và tài khoản */
-        .action-icon {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            color: #334155;
-            text-decoration: none;
-            font-weight: 600;
-            font-size: 14px;
-            transition: 0.2s;
-        }
-        .action-icon:hover { color: #3b82f6; }
-        .action-icon i { font-size: 22px; }
-        
-        .cart-icon-wrapper {
-            position: relative;
-        }
-        .cart-badge {
-            position: absolute;
-            top: -6px;
-            right: -10px;
-            background: #ef4444;
-            color: white;
-            font-size: 11px;
-            font-weight: bold;
-            width: 20px;
-            height: 20px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        /* Menu danh mục */
-        .nav-category {
-            background-color: #f3de65;
-            border-bottom: 1px solid #e5e9ee;
-        }
-        .nav-category .nav-link {
-            color: #f5f1f1;
-            font-weight: 600;
-            padding: 12px 20px;
-            font-size: 15px;
-        }
-        .nav-category .nav-link:hover { color: #3b82f6; }
-    </style>
+    <link href="<?= e(url('assets/css/header-footer.css')) ?>" rel="stylesheet">
+    <link href="<?= e(url('assets/css/shop.css')) ?>" rel="stylesheet">
+    <?php foreach ($extraCss ?? [] as $href): /* CSS riêng của trang, ví dụ auth.css */ ?>
+        <link href="<?= e($href) ?>" rel="stylesheet">
+    <?php endforeach; ?>
 </head>
 <body class="bg-light">
 
@@ -126,7 +40,7 @@ $menu = [
 <div class="header-top">
     <div class="container d-flex justify-content-between">
         <span><i class="bi bi-telephone-fill me-1"></i> Hotline: 1900 1234</span>
-        <span>Miễn phí giao hàng cho đơn từ 500k</span>
+        <span class="d-none d-sm-inline">Miễn phí giao hàng cho đơn từ 500k</span>
     </div>
 </div>
 
@@ -137,32 +51,34 @@ $menu = [
             <!-- Logo -->
             <div class="col-md-3">
                 <a href="<?= e(url('index.php')) ?>" class="brand-logo">
-                    <i class="bi bi-star-fill" style="color: #f59e0b;"></i> Kiddo<span>Zone</span>
+                    <i class="bi bi-star-fill"></i> Kiddo<span>Zone</span>
                 </a>
             </div>
-            
-            <!-- Thanh tìm kiếm -->
+
+            <!-- Thanh tìm kiếm: gửi tới trang danh sách sản phẩm (tham số q) -->
             <div class="col-md-5 my-3 my-md-0">
-                <form class="search-box" action="<?= e(url('index.php')) ?>" method="GET">
+                <form class="search-box" action="<?= e(url('products.php')) ?>" method="get" role="search">
                     <i class="bi bi-search"></i>
-                    <input type="text" name="search" class="form-control" placeholder="Tìm kiếm đồ chơi, xe cộ, búp bê...">
+                    <input type="search" name="q" class="form-control" maxlength="100"
+                           placeholder="Tìm kiếm đồ chơi, xe cộ, búp bê..." aria-label="Tìm kiếm sản phẩm"
+                           value="<?= e($searchValue) ?>">
                 </form>
             </div>
-            
+
             <!-- Tài khoản & Giỏ hàng -->
             <div class="col-md-4 d-flex justify-content-md-end align-items-center gap-4">
                 <?php if ($user): ?>
                     <div class="dropdown">
-                        <a href="#" class="action-icon dropdown-toggle" data-bs-toggle="dropdown">
+                        <a href="#" class="action-icon dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
                             <i class="bi bi-person-circle"></i>
                             <div>
-                                <div style="font-size: 11px; color: #64748b;">Xin chào</div>
+                                <div class="action-sub">Xin chào</div>
                                 <div><?= e($user['full_name']) ?></div>
                             </div>
                         </a>
                         <ul class="dropdown-menu dropdown-menu-end">
                             <?php if (is_admin()): ?>
-                                <li><a class="dropdown-item" href="<?= e(url('admin/index.php')) ?>">Trang Quản Trị</a></li>
+                                <li><a class="dropdown-item" href="<?= e(url('admin/index.php')) ?>">Trang quản trị</a></li>
                             <?php endif; ?>
                             <li>
                                 <form method="post" action="<?= e(url('logout.php')) ?>" class="m-0">
@@ -176,18 +92,18 @@ $menu = [
                     <a href="<?= e(url('login.php')) ?>" class="action-icon">
                         <i class="bi bi-person-circle"></i>
                         <div>
-                            <div style="font-size: 11px; color: #64748b;">Tài khoản</div>
+                            <div class="action-sub">Tài khoản</div>
                             <div>Đăng nhập</div>
                         </div>
                     </a>
                 <?php endif; ?>
-                
-                <a href="#" class="action-icon cart-icon-wrapper">
+
+                <a href="<?= e(url('cart.php')) ?>" class="action-icon cart-icon-wrapper">
                     <i class="bi bi-cart3"></i>
-                    <span class="cart-badge">0</span>
+                    <span class="cart-badge"><?= $cartCount ?></span>
                     <div class="ms-2">
-                        <div style="font-size: 11px; color: #64748b;">Giỏ hàng</div>
-                        <div>0 sản phẩm</div>
+                        <div class="action-sub">Giỏ hàng</div>
+                        <div><?= $cartCount ?> sản phẩm</div>
                     </div>
                 </a>
             </div>
@@ -196,18 +112,28 @@ $menu = [
 </div>
 
 <!-- Menu danh mục -->
-<div class="nav-category shadow-sm">
+<nav class="nav-category shadow-sm" aria-label="Danh mục sản phẩm">
     <div class="container">
         <ul class="nav justify-content-center">
-            <li class="nav-item"><a class="nav-link" href="<?= e(url('index.php')) ?>"><i class="bi bi-house-door me-1"></i> Trang chủ</a></li>
-            <li class="nav-item"><a class="nav-link" href="#">Đồ chơi giáo dục</a></li>
-            <li class="nav-item"><a class="nav-link" href="#">Lắp ráp & Xếp hình</a></li>
-            <li class="nav-item"><a class="nav-link" href="#">Búp bê & Thú bông</a></li>
-            <li class="nav-item"><a class="nav-link" href="#">Xe & Mô hình</a></li>
-            <li class="nav-item"><a class="nav-link text-danger fw-bold" href="#"><i class="bi bi-fire"></i> Khuyến mãi</a></li>
+            <li class="nav-item">
+                <a class="nav-link <?= $currentPage === 'index.php' ? 'active' : '' ?>" href="<?= e(url('index.php')) ?>">
+                    <i class="bi bi-house-door me-1"></i> Trang chủ
+                </a>
+            </li>
+            <?php foreach ($navCategories as $c): ?>
+                <li class="nav-item">
+                    <a class="nav-link <?= $navCategoryId === (int)$c['id'] ? 'active' : '' ?>"
+                       href="<?= e(url('products.php?category=' . (int)$c['id'])) ?>"><?= e($c['name']) ?></a>
+                </li>
+            <?php endforeach; ?>
+            <li class="nav-item">
+                <a class="nav-link nav-sale <?= $navSale ? 'active' : '' ?>" href="<?= e(url('products.php?sale=1')) ?>">
+                    <i class="bi bi-fire"></i> Khuyến mãi
+                </a>
+            </li>
         </ul>
     </div>
-</div>
+</nav>
 
 <!-- Vùng chứa nội dung chính -->
 <main class="container py-4">
@@ -215,6 +141,6 @@ $menu = [
     <?php foreach (flash_pull() as $f): ?>
         <div class="alert alert-<?= e($f['type']) ?> alert-dismissible fade show">
             <?= e($f['message']) ?>
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Đóng"></button>
         </div>
     <?php endforeach; ?>

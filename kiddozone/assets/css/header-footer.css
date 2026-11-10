@@ -61,6 +61,99 @@ body { font-family: 'Nunito', system-ui, sans-serif; color: var(--kz-ink); }
     font-size: .65rem;
 }
 
+/* ---------- Header mới (thanh trên, logo, tìm kiếm, menu danh mục) ---------- */
+.header-top {
+    background: linear-gradient(90deg, #3a64da, #6f9ce6);
+    color: #fff;
+    font-size: 13px;
+    padding: 5px 0;
+}
+
+.header-main {
+    background-color: #fff;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, .05);
+    padding: 15px 0;
+}
+
+.brand-logo {
+    font-size: 28px;
+    font-weight: 900;
+    color: #1e3a8a;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.brand-logo:hover { color: #1e3a8a; }
+.brand-logo i,
+.brand-logo span { color: #f59e0b; }
+
+.search-box { position: relative; width: 100%; }
+.search-box input {
+    border-radius: 50px;
+    padding: 10px 20px 10px 45px;
+    border: 2px solid #3b82f6;
+    background-color: #f8fafc;
+}
+.search-box input:focus {
+    box-shadow: 0 0 0 4px rgba(59, 130, 246, .1);
+    background-color: #fff;
+}
+.search-box i {
+    position: absolute;
+    left: 18px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #3b82f6;
+    font-size: 18px;
+}
+
+.action-icon {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #334155;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 14px;
+    transition: .2s;
+}
+.action-icon:hover { color: #3b82f6; }
+.action-icon i { font-size: 22px; }
+.action-sub { font-size: 11px; color: #64748b; }
+
+.cart-icon-wrapper { position: relative; }
+.cart-badge {
+    position: absolute;
+    top: -6px;
+    left: 14px;
+    background: #ef4444;
+    color: #fff;
+    font-size: 11px;
+    font-weight: bold;
+    min-width: 20px;
+    height: 20px;
+    padding: 0 4px;
+    border-radius: 999px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.nav-category {
+    background-color: #f3de65;
+    border-bottom: 1px solid #e5e9ee;
+}
+.nav-category .nav-link {
+    color: var(--kz-ink);
+    font-weight: 600;
+    padding: 12px 20px;
+    font-size: 15px;
+}
+.nav-category .nav-link:hover { color: #1d4ed8; }
+.nav-category .nav-link.active { background: rgba(255, 255, 255, .55); color: #1d4ed8; }
+.nav-category .nav-sale { color: #c81e1e; font-weight: 700; }
+
 /* ---------- Footer ---------- */
 .kz-footer { background: var(--kz-ink); color: #D9DFEC; }
 .kz-footer a { color: #D9DFEC; text-decoration: none; }

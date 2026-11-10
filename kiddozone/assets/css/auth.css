@@ -47,7 +47,8 @@ body {
     z-index: 2;
 }
 
-.brand-logo {
+/* Logo trong banner (đặt tên riêng để không đè lên .brand-logo của header) */
+.auth-brand {
     display: flex;
     align-items: center;
     gap: 10px;
@@ -57,7 +58,7 @@ body {
     text-shadow: 1px 1px 3px rgba(0,0,0,0.2);
 }
 
-.brand-logo > span:last-child span {
+.auth-brand > span:last-child span {
     color: #ffd84d;
 }
 

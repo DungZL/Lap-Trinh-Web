@@ -1,4 +1,6 @@
--- KiddoZone: cấu trúc bảng + dữ liệu mẫu. Nhập bằng phpMyAdmin (tab Import) hoặc: mysql -u root < kiddozone.sql
+-- KiddoZone: cấu trúc bảng + dữ liệu mẫu (MySQL 8 / MariaDB 10.4+ của XAMPP).
+-- Nhập bằng phpMyAdmin (http://localhost/phpmyadmin, tab Import) hoặc:
+--   C:\xampp\mysql\bin\mysql.exe -u root --default-character-set=utf8mb4 < kiddozone.sql
 -- Tài khoản mẫu:  admin@kiddozone.test / Admin@123   |   khach1@kiddozone.test, khach2@..., khach3@... / Khach@123
 
 CREATE DATABASE IF NOT EXISTS kiddozone CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;

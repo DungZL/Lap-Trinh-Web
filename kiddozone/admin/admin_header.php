@@ -1,6 +1,17 @@
-
 <?php
-$pageTitle = 'Admin KiddoZone';
+// Layout chung trang quản trị. Trang gọi: đặt $pageTitle rồi require __DIR__ . '/../admin_header.php';
+$pageTitle = $pageTitle ?? 'Quản trị';
+
+// Mục menu đang mở: so khớp đường dẫn hiện tại với từng mục.
+$adminMenu = [
+    'admin/index.php'      => ['bi-speedometer2', 'Dashboard'],
+    'admin/categories/'    => ['bi-folder', 'Danh mục'],
+    'admin/products/'      => ['bi-box', 'Sản phẩm'],
+    'admin/orders/'        => ['bi-cart', 'Đơn hàng'],
+    'admin/users/'         => ['bi-people', 'Người dùng'],
+    'admin/reviews/'       => ['bi-star', 'Đánh giá'],
+];
+$currentPath = strtok($_SERVER['REQUEST_URI'] ?? '', '?');
 ?>
 <!DOCTYPE html>
 <html lang="vi">
@@ -11,54 +22,7 @@ $pageTitle = 'Admin KiddoZone';
 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
-
-    <style>
-        body {
-            background: #f4f6f9;
-        }
-
-        .admin-sidebar {
-            width: 250px;
-            min-height: 100vh;
-            background: #17263d;
-            position: fixed;
-            top: 0;
-            left: 0;
-            padding: 20px;
-        }
-
-        .admin-sidebar a {
-            display: block;
-            color: #dce5f0;
-            text-decoration: none;
-            padding: 12px;
-            border-radius: 8px;
-            margin-bottom: 5px;
-        }
-
-        .admin-sidebar a:hover {
-            background: #304a6e;
-            color: white;
-        }
-
-        .admin-content {
-            margin-left: 250px;
-            padding: 30px;
-        }
-
-        @media (max-width: 768px) {
-            .admin-sidebar {
-                position: static;
-                width: 100%;
-                min-height: auto;
-            }
-
-            .admin-content {
-                margin-left: 0;
-                padding: 15px;
-            }
-        }
-    </style>
+    <link href="<?= e(url('assets/css/admin.css')) ?>" rel="stylesheet">
 </head>
 <body>
 
@@ -67,35 +31,31 @@ $pageTitle = 'Admin KiddoZone';
         <i class="bi bi-box-seam"></i> KiddoZone
     </h4>
 
-    <a href="/kiddozone/admin/index.php">
-        <i class="bi bi-speedometer2 me-2"></i> Dashboard
-    </a>
-
-    <a href="/kiddozone/admin/categories/">
-        <i class="bi bi-folder me-2"></i> Danh mục
-    </a>
-
-    <a href="/kiddozone/admin/products/">
-        <i class="bi bi-box me-2"></i> Sản phẩm
-    </a>
-
-    <a href="/kiddozone/admin/orders/">
-        <i class="bi bi-cart me-2"></i> Đơn hàng
-    </a>
-
-    <a href="/kiddozone/admin/users/">
-        <i class="bi bi-people me-2"></i> Người dùng
-    </a>
-
-    <a href="/kiddozone/admin/reviews/">
-        <i class="bi bi-star me-2"></i> Đánh giá
-    </a>
+    <?php foreach ($adminMenu as $path => [$icon, $label]): ?>
+        <?php $href = url($path); ?>
+        <a href="<?= e($href) ?>" class="<?= str_starts_with($currentPath, $href) ? 'active' : '' ?>">
+            <i class="bi <?= e($icon) ?> me-2"></i> <?= e($label) ?>
+        </a>
+    <?php endforeach; ?>
 
     <hr class="text-white">
 
-    <a href="/kiddozone/index.php">
+    <a href="<?= e(url('index.php')) ?>">
         <i class="bi bi-house me-2"></i> Xem website
     </a>
+
+    <form method="post" action="<?= e(url('logout.php')) ?>" class="m-0">
+        <?= csrf_field() ?>
+        <button type="submit" class="admin-logout">
+            <i class="bi bi-box-arrow-right me-2"></i> Đăng xuất
+        </button>
+    </form>
 </div>
 
 <main class="admin-content">
+    <?php foreach (flash_pull() as $f): ?>
+        <div class="alert alert-<?= e($f['type']) ?> alert-dismissible fade show">
+            <?= e($f['message']) ?>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Đóng"></button>
+        </div>
+    <?php endforeach; ?>

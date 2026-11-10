@@ -34,7 +34,7 @@ KiddoZone là website bán đồ chơi trẻ em (đồ chơi giáo dục, lắp 
 |---|---|
 | Frontend | HTML5, Bootstrap 5.3 (CDN), Bootstrap Icons, JavaScript thuần |
 | Editor, biểu đồ | TinyMCE 6, Chart.js 4 (CDN) |
-| Môi trường chạy | Laragon, phpMyAdmin |
+| Môi trường chạy | XAMPP (Apache + MariaDB/MySQL), phpMyAdmin |
 | Quản lý mã nguồn | Git + GitHub |
 | Vẽ sơ đồ | draw.io |
 | Deploy (nếu có) | InfinityFree hoặc Render |
@@ -97,7 +97,7 @@ Biểu đồ use case tổng quát gồm ba tác nhân. Khách hàng (đã đăn
 - **Hiệu năng:** các trang chính tải dưới 3 giây trên mạng thông thường; danh sách luôn phân trang, không tải toàn bộ dữ liệu.
 - **Tương thích:** Chrome, Edge, Firefox bản mới; hiển thị tốt từ màn hình 375px.
 - **Bảo mật:** áp dụng các biện pháp ở mục 3.4.
-- **Dễ cài đặt:** chạy trên Laragon, chỉ cần nhập một file `database/kiddozone.sql`.
+- **Dễ cài đặt:** chạy trên XAMPP, chỉ cần nhập một file `database/kiddozone.sql`.
 
 ## 3. Thiết kế hệ thống
 

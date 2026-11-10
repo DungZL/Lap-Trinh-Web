@@ -19,21 +19,22 @@ if (is_post()) {
     }
 }
 
-$pageTitle = 'Đăng nhập | KiddoZone';
+$pageTitle = 'Đăng nhập';
+$extraCss = [
+    url('assets/css/auth.css'),
+    // FontAwesome cho icon trong ô nhập
+    'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css',
+];
 require __DIR__ . '/includes/header.php';
 ?>
 
-<link rel="stylesheet" href="assets/css/auth.css">
-<!-- Thêm thư viện FontAwesome để lấy icon -->
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-
-<main class="auth-page">
+<div class="auth-page">
     <div class="auth-container">
-        
+
         <!-- CỘT TRÁI: BANNER MÀU XANH CHỨA CHỮ VÀ ẢNH -->
         <div class="auth-image-section">
             <div class="banner-content">
-                <div class="brand-logo">
+                <div class="auth-brand">
                     <span class="brand-icon">K</span>
                     <span>Kiddo<span>Zone</span></span>
                 </div>
@@ -111,14 +112,14 @@ require __DIR__ . '/includes/header.php';
             </form>
 
             <div class="auth-register">
-                Chưa có tài khoản? <a href="register.php">Đăng ký ngay</a>
+                Chưa có tài khoản? <a href="<?= e(url('register.php')) ?>">Đăng ký ngay</a>
             </div>
             <div class="auth-support">
                 Bằng việc đăng nhập, bạn có thể khám phá và quản lý đơn hàng tại KiddoZone.
             </div>
         </div>
     </div>
-</main>
+</div>
 
-<script src="assets/js/auth.js"></script>
+<script src="<?= e(url('assets/js/auth.js')) ?>"></script>
 <?php require __DIR__ . '/includes/footer.php'; ?>
