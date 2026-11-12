@@ -3,6 +3,8 @@
 // Cách dùng: require_once __DIR__ . '/includes/product_card.php';  rồi  render_product_card($p);
 // $p cần có: id, name, price, sale_price, stock, category_name, image.
 
+require_once __DIR__ . '/wishlist.php';
+
 if (!function_exists('product_image_url')) {
     /** image_path là "assets/..." (ảnh mẫu) hoặc tên file trong uploads/ (ảnh Admin tải lên). */
     function product_image_url(?string $path): string
@@ -25,12 +27,13 @@ if (!function_exists('render_product_card')) {
         $detail   = url('product.php?id=' . (int)$p['id']);
         $fallback = url('assets/img/placeholder.svg');
         ?>
-        <div class="col">
+        <div class="col" id="product-<?= (int)$p['id'] ?>">
             <div class="card kz-product h-100 <?= $soldOut ? 'kz-sold-out' : '' ?>">
                 <div class="kz-product-img ratio ratio-1x1">
                     <img src="<?= e(product_image_url($p['image'] ?? null)) ?>" alt="<?= e($p['name']) ?>"
                          loading="lazy" data-fallback="<?= e($fallback) ?>">
                 </div>
+                <?php render_wishlist_button((int)$p['id']); ?>
                 <?php if ($soldOut): ?>
                     <span class="kz-badge kz-badge-out">Hết hàng</span>
                 <?php elseif ($onSale): ?>

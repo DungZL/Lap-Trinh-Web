@@ -215,6 +215,10 @@ require __DIR__ . '/includes/header.php';
                 </button>
             </div>
         </form>
+
+        <div class="mt-3" id="product-<?= (int)$product['id'] ?>">
+            <?php render_wishlist_button((int)$product['id'], true); ?>
+        </div>
     </div>
 </div>
 

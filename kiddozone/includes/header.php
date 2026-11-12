@@ -30,6 +30,7 @@ $searchValue = ($currentPage === 'products.php' && is_string($_GET['q'] ?? null)
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
     <link href="<?= e(url('assets/css/header-footer.css')) ?>" rel="stylesheet">
     <link href="<?= e(url('assets/css/shop.css')) ?>" rel="stylesheet">
+    <link href="<?= e(url('assets/css/wishlist.css')) ?>" rel="stylesheet">
     <?php foreach ($extraCss ?? [] as $href): /* CSS riêng của trang, ví dụ auth.css */ ?>
         <link href="<?= e($href) ?>" rel="stylesheet">
     <?php endforeach; ?>
@@ -79,6 +80,9 @@ $searchValue = ($currentPage === 'products.php' && is_string($_GET['q'] ?? null)
                         <ul class="dropdown-menu dropdown-menu-end">
                             <?php if (is_admin()): ?>
                                 <li><a class="dropdown-item" href="<?= e(url('admin/index.php')) ?>">Trang quản trị</a></li>
+                            <?php else: ?>
+                                <li><a class="dropdown-item" href="<?= e(url('account/wishlist.php')) ?>"><i class="bi bi-heart me-1"></i> Sản phẩm yêu thích</a></li>
+                                <li><hr class="dropdown-divider"></li>
                             <?php endif; ?>
                             <li>
                                 <form method="post" action="<?= e(url('logout.php')) ?>" class="m-0">
