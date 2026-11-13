@@ -2,6 +2,7 @@
 // Chi tiết sản phẩm (task F05): gallery ảnh, giá/giá khuyến mãi, tồn kho, mô tả HTML, nút thêm vào giỏ.
 require_once __DIR__ . '/includes/init.php';
 require_once __DIR__ . '/includes/product_card.php';
+require_once __DIR__ . '/includes/recently_viewed.php';
 
 /**
  * Lọc HTML mô tả (từ TinyMCE) trước khi in ra: bỏ script/iframe/form..., bỏ mọi thuộc tính ngoài danh sách
@@ -132,6 +133,10 @@ $images = db_query(
 $imageUrls = $images ? array_map('product_image_url', $images) : [product_image_url(null)];
 $fallbackImg = product_image_url(null);
 
+// Sản phẩm đã xem trước đó (không gồm sản phẩm này), rồi mới ghi nhận lượt xem hiện tại vào cookie.
+$recentIds = array_values(array_diff(recently_viewed_ids(), [(int)$product['id']]));
+recently_viewed_add((int)$product['id']);
+
 /* ---------- 2. Chuẩn bị hiển thị ---------- */
 
 $price   = (float)$product['price'];
@@ -231,5 +236,7 @@ require __DIR__ . '/includes/header.php';
         <p class="text-muted">Chưa có mô tả cho sản phẩm này.</p>
     <?php endif; ?>
 </section>
+
+<?php render_recently_viewed(recently_viewed_products($recentIds)); ?>
 
 <?php require __DIR__ . '/includes/footer.php'; ?>

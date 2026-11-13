@@ -2,6 +2,7 @@
 // Trang chủ (task F03): banner, danh mục, sản phẩm nổi bật, sản phẩm mới nhất.
 require_once __DIR__ . '/includes/init.php';
 require_once __DIR__ . '/includes/product_card.php';
+require_once __DIR__ . '/includes/recently_viewed.php';
 
 const HOME_PRODUCT_LIMIT = 8;
 
@@ -35,6 +36,9 @@ $newest = db_query(
     $productSelect . ' ORDER BY p.created_at DESC, p.id DESC LIMIT ' . HOME_PRODUCT_LIMIT,
     []
 )->fetchAll();
+
+// Sản phẩm đã xem gần đây (đọc từ cookie, tối đa 8).
+$recent = recently_viewed_products(recently_viewed_ids());
 
 $categoryIcons = ['bi-lightbulb', 'bi-bricks', 'bi-balloon-heart', 'bi-car-front', 'bi-bicycle'];
 
@@ -110,5 +114,7 @@ require __DIR__ . '/includes/header.php';
         </div>
     <?php endif; ?>
 </section>
+
+<?php render_recently_viewed($recent); ?>
 
 <?php require __DIR__ . '/includes/footer.php'; ?>
