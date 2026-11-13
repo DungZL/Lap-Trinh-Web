@@ -113,8 +113,9 @@ function register_customer(array $in, ?int &$newId = null): array
     if (!filter_var($email, FILTER_VALIDATE_EMAIL) || mb_strlen($email) > 150) {
         $errors[] = 'Email không hợp lệ.';
     }
-    if (strlen($pass) < 6) {
-        $errors[] = 'Mật khẩu tối thiểu 6 ký tự.';
+    // Cùng quy tắc với kiểm tra phía trình duyệt trong assets/js/auth.js.
+    if (strlen($pass) < 8 || !preg_match('/[A-Za-z]/', $pass) || !preg_match('/[0-9]/', $pass)) {
+        $errors[] = 'Mật khẩu tối thiểu 8 ký tự, gồm cả chữ và số.';
     }
     if ($pass !== $pass2) {
         $errors[] = 'Mật khẩu xác nhận không khớp.';
