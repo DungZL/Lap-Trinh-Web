@@ -99,3 +99,103 @@ body {
         padding: 15px;
     }
 }
+
+/* F11 - Upload nhiều ảnh sản phẩm */
+
+.product-upload-zone {
+    border: 2px dashed #adb5bd;
+    border-radius: 12px;
+    padding: 35px 20px;
+    text-align: center;
+    background: #f8f9fa;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.product-upload-zone:hover,
+.product-upload-zone.dragover {
+    border-color: #0d6efd;
+    background: #eef5ff;
+}
+
+
+/* Khung chứa ảnh - đúng 3 ảnh mỗi hàng */
+.product-preview-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 15px;
+    width: 100%;
+    margin-top: 20px;
+}
+
+/* Mỗi ảnh có kích thước vuông bằng nhau */
+.product-preview-item {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    min-width: 0;
+    overflow: hidden;
+    border: 1px solid #dee2e6;
+    border-radius: 10px;
+    background: #f8f9fa;
+}
+
+/* Ảnh lấp đầy khung, không bị méo */
+.product-preview-item img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* Nút X xóa ảnh */
+.product-image-remove {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    width: 26px;
+    height: 26px;
+    padding: 0;
+    border: none;
+    border-radius: 50%;
+    background: #dc3545;
+    color: white;
+    font-size: 19px;
+    line-height: 26px;
+    text-align: center;
+    cursor: pointer;
+    z-index: 10;
+}
+
+.product-image-remove:hover {
+    background: #a71d2a;
+}
+
+/* Nhãn ảnh đại diện */
+.product-main-label {
+    position: absolute;
+    bottom: 6px;
+    left: 6px;
+    padding: 4px 8px;
+    border-radius: 5px;
+    background: #198754;
+    color: white;
+    font-size: 11px;
+    z-index: 2;
+}
+
+
+.product-image-remove:hover {
+    background: #b02a37;
+}
+
+.product-main-label {
+    position: absolute;
+    bottom: 6px;
+    left: 6px;
+    background: #198754;
+    color: white;
+    font-size: 11px;
+    padding: 3px 7px;
+    border-radius: 5px;
+}
