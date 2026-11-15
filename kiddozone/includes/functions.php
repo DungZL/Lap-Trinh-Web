@@ -7,19 +7,39 @@ function e($value): string
     return htmlspecialchars((string)$value, ENT_QUOTES, 'UTF-8');
 }
 
-/** Đường dẫn gốc website, ví dụ "/Lap-Trinh-Web/kiddozone" (không có dấu / cuối). */
+/**
+ * Đường dẫn gốc website, ví dụ "/Lap-Trinh-Web/kiddozone" (không có dấu / cuối).
+ * Tự dò từ URL của file đang chạy, nên đúng cả khi thư mục dự án là junction/symlink
+ * (ví dụ htdocs\Lap-Trinh-Web trỏ về Desktop) hoặc được đổi tên.
+ */
 function base_url(): string
 {
     static $base = null;
-    if ($base === null) {
-        if (BASE_URL_OVERRIDE !== null) {
-            $base = rtrim(BASE_URL_OVERRIDE, '/');
-        } else {
-            $root = str_replace('\\', '/', realpath($_SERVER['DOCUMENT_ROOT'] ?? '') ?: '');
-            $app  = str_replace('\\', '/', realpath(dirname(__DIR__)) ?: '');
-            $base = ($root !== '' && strpos($app, $root) === 0) ? rtrim(substr($app, strlen($root)), '/') : '';
+    if ($base !== null) {
+        return $base;
+    }
+    if (BASE_URL_OVERRIDE !== null) {
+        return $base = rtrim(BASE_URL_OVERRIDE, '/');
+    }
+
+    $norm = fn(string $p): string => str_replace('\\', '/', $p);
+    $app  = $norm(realpath(dirname(__DIR__)) ?: '');
+
+    // Cách 1: đường dẫn file đang chạy, tính từ thư mục dự án (ví dụ "/admin/categories/index.php"),
+    // rồi cắt phần đó khỏi SCRIPT_NAME (ví dụ "/Lap-Trinh-Web/kiddozone/admin/categories/index.php").
+    $script     = $norm(realpath($_SERVER['SCRIPT_FILENAME'] ?? '') ?: '');
+    $scriptName = $norm($_SERVER['SCRIPT_NAME'] ?? '');
+    if ($app !== '' && $script !== '' && stripos($script, $app . '/') === 0) {
+        $relative = substr($script, strlen($app)); // bắt đầu bằng "/"
+        if (strlen($scriptName) >= strlen($relative)
+            && strcasecmp(substr($scriptName, -strlen($relative)), $relative) === 0) {
+            return $base = rtrim(substr($scriptName, 0, -strlen($relative)), '/');
         }
     }
+
+    // Cách 2 (dự phòng): so thư mục dự án với DOCUMENT_ROOT.
+    $root = $norm(realpath($_SERVER['DOCUMENT_ROOT'] ?? '') ?: '');
+    $base = ($root !== '' && stripos($app, $root) === 0) ? rtrim(substr($app, strlen($root)), '/') : '';
     return $base;
 }
 

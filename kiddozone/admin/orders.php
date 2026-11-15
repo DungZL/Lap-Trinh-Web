@@ -160,7 +160,7 @@ if ($showOrder) {
     )->fetchAll();
 }
 
-require __DIR__ . '/../includes/header.php';
+require __DIR__ . '/admin_header.php';
 ?>
 <?php if ($showOrder): ?>
     <?php if (!$order): ?>
@@ -330,4 +330,4 @@ require __DIR__ . '/../includes/header.php';
     <?php endif; ?>
 <?php endif; ?>
 
-<?php require __DIR__ . '/../includes/footer.php'; ?>
+<?php require __DIR__ . '/admin_footer.php'; ?>

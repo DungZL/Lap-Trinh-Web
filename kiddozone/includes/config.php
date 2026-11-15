@@ -1,5 +1,5 @@
 <?php
-// Cấu hình chung. Chỉnh DB_* cho khớp máy của bạn (Laragon mặc định: root, không mật khẩu).
+// Cấu hình chung. Chỉnh DB_* cho khớp máy của bạn (XAMPP mặc định: root, không mật khẩu).
 define('DB_HOST', '127.0.0.1');
 define('DB_NAME', 'kiddozone');
 define('DB_USER', 'root');

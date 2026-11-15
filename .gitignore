@@ -4,7 +4,14 @@ kiddozone/uploads/*
 
 # Cấu hình riêng từng máy (nếu tạo)
 kiddozone/includes/config.local.php
+kiddozone/.env
+.env
+
+# Node & npm (nếu có công cụ phụ trợ)
+node_modules/
+kiddozone/node_modules/
 
 .vscode/
 .idea/
 *.log
+~$*
