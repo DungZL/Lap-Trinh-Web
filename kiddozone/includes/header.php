@@ -32,6 +32,8 @@ $user = current_user();
                     <li class="nav-item"><span class="nav-link"><?= e($user['full_name']) ?></span></li>
                     <?php if (is_admin()): ?>
                         <li class="nav-item"><a class="nav-link" href="<?= e(url('admin/index.php')) ?>">Quản trị</a></li>
+                    <?php else: ?>
+                        <li class="nav-item"><a class="nav-link" href="<?= e(url('account/orders.php')) ?>">Lịch sử đơn hàng</a></li>
                     <?php endif; ?>
                     <li class="nav-item">
                         <form method="post" action="<?= e(url('logout.php')) ?>" class="m-0">
