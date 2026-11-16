@@ -81,6 +81,7 @@ $searchValue = ($currentPage === 'products.php' && is_string($_GET['q'] ?? null)
                             <?php if (is_admin()): ?>
                                 <li><a class="dropdown-item" href="<?= e(url('admin/index.php')) ?>">Trang quản trị</a></li>
                             <?php else: ?>
+                                <li><a class="dropdown-item" href="<?= e(url('account/profile.php')) ?>"><i class="bi bi-person-gear me-1"></i> Hồ sơ cá nhân</a></li>
                                 <li><a class="dropdown-item" href="<?= e(url('account/orders.php')) ?>"><i class="bi bi-receipt me-1"></i> Lịch sử đơn hàng</a></li>
                                 <li><a class="dropdown-item" href="<?= e(url('account/wishlist.php')) ?>"><i class="bi bi-heart me-1"></i> Sản phẩm yêu thích</a></li>
                                 <li><hr class="dropdown-divider"></li>

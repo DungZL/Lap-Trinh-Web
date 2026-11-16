@@ -1,13 +1,33 @@
-
 <?php
 require_once __DIR__ . '/../../includes/init.php';
 require_admin();
 
 $pageTitle = 'Quản lý sản phẩm';
 
-// Phân trang
-$total = (int) db_query(
-    'SELECT COUNT(*) FROM products'
+$qRaw = $_GET['q'] ?? '';
+$search = is_string($qRaw) ? trim(mb_substr($qRaw, 0, 100)) : '';
+
+$catRaw = $_GET['category'] ?? '';
+$categoryId = is_string($catRaw) ? (int)$catRaw : 0;
+
+$categories = db_query('SELECT id, name FROM categories ORDER BY name')->fetchAll();
+
+$where = [];
+$params = [];
+if ($search !== '') {
+    $where[] = 'p.name LIKE ?';
+    $params[] = '%' . addcslashes($search, '%_\\') . '%';
+}
+if ($categoryId > 0) {
+    $where[] = 'p.category_id = ?';
+    $params[] = $categoryId;
+}
+$whereSql = $where ? ('WHERE ' . implode(' AND ', $where)) : '';
+
+// Phân trang (TC16)
+$total = (int)db_query(
+    "SELECT COUNT(*) FROM products p $whereSql",
+    $params
 )->fetchColumn();
 
 [$offset, $pages, $page] = paginate(
@@ -17,7 +37,7 @@ $total = (int) db_query(
 
 // Lấy sản phẩm, danh mục và ảnh chính
 $products = db_query(
-    'SELECT
+    "SELECT
         p.id,
         p.name,
         p.price,
@@ -35,9 +55,11 @@ $products = db_query(
         ) AS image_path
      FROM products p
      INNER JOIN categories c ON c.id = p.category_id
+     $whereSql
      ORDER BY p.id DESC
-     LIMIT ' . (int) ITEMS_PER_PAGE_ADMIN .
-     ' OFFSET ' . (int) $offset
+     LIMIT " . (int)ITEMS_PER_PAGE_ADMIN .
+     ' OFFSET ' . (int)$offset,
+    $params
 )->fetchAll();
 
 require __DIR__ . '/../admin_header.php';
@@ -51,6 +73,31 @@ require __DIR__ . '/../admin_header.php';
         Thêm sản phẩm
     </a>
 </div>
+
+<form method="get" action="<?= e(url('admin/products/index.php')) ?>" class="row g-2 mb-4">
+    <div class="col-md-5">
+        <input type="search" name="q" class="form-control" maxlength="100"
+               value="<?= e($search) ?>" placeholder="Tìm theo tên sản phẩm">
+    </div>
+    <div class="col-md-3">
+        <select name="category" class="form-select" aria-label="Lọc danh mục">
+            <option value="">Tất cả danh mục</option>
+            <?php foreach ($categories as $cat): ?>
+                <option value="<?= (int)$cat['id'] ?>" <?= $categoryId === (int)$cat['id'] ? 'selected' : '' ?>>
+                    <?= e($cat['name']) ?>
+                </option>
+            <?php endforeach; ?>
+        </select>
+    </div>
+    <div class="col-md-auto">
+        <button type="submit" class="btn btn-primary">
+            <i class="bi bi-search"></i> Tìm kiếm
+        </button>
+        <?php if ($search !== '' || $categoryId > 0): ?>
+            <a href="<?= e(url('admin/products/index.php')) ?>" class="btn btn-outline-secondary">Xóa lọc</a>
+        <?php endif; ?>
+    </div>
+</form>
 
 <div class="card shadow-sm border-0">
     <div class="card-body table-responsive">
@@ -81,7 +128,7 @@ require __DIR__ . '/../admin_header.php';
                     ?>
 
                     <tr>
-                        <td><?= (int) $product['id'] ?></td>
+                        <td><?= (int)$product['id'] ?></td>
 
                         <td>
                             <img

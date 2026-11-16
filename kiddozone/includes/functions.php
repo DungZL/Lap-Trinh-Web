@@ -118,9 +118,164 @@ function session_cart(): array
     return $items;
 }
 
+/** Lấy ID giỏ hàng trong CSDL theo user_id, tùy chọn tạo mới nếu chưa có. */
+function user_cart_id(int $userId, bool $create = false): ?int
+{
+    $id = db_query('SELECT id FROM carts WHERE user_id = ?', [$userId])->fetchColumn();
+    if ($id !== false) {
+        return (int)$id;
+    }
+    if (!$create) {
+        return null;
+    }
+    db_query(
+        'INSERT INTO carts (user_id) VALUES (?) ON DUPLICATE KEY UPDATE id = LAST_INSERT_ID(id)',
+        [$userId]
+    );
+    return (int)db()->lastInsertId();
+}
+
+/** Lấy giỏ hàng hiện tại dạng [product_id => quantity] (từ CSDL nếu là khách hàng, từ session nếu là khách vãng lai). */
+function cart_items(): array
+{
+    if (function_exists('is_logged_in') && is_logged_in() && !is_admin()) {
+        $rows = db_query(
+            'SELECT ci.product_id, ci.quantity
+             FROM cart_items ci
+             JOIN carts c ON c.id = ci.cart_id
+             WHERE c.user_id = ?
+             ORDER BY ci.id ASC',
+            [(int)current_user()['id']]
+        )->fetchAll();
+
+        $items = [];
+        foreach ($rows as $row) {
+            $pid = (int)$row['product_id'];
+            $qty = (int)$row['quantity'];
+            if ($pid > 0 && $qty > 0) {
+                $items[$pid] = $qty;
+            }
+        }
+        return $items;
+    }
+
+    return session_cart();
+}
+
+function cart_count(): int
+{
+    return array_sum(cart_items());
+}
+
 function cart_item_count(): int
 {
-    return array_sum(session_cart());
+    return cart_count();
+}
+
+/** Đặt số lượng 1 sản phẩm trong giỏ (<= 0 thì xóa khỏi giỏ). */
+function cart_set_item(int $productId, int $quantity): void
+{
+    if ($productId <= 0) {
+        return;
+    }
+    if (function_exists('is_logged_in') && is_logged_in() && !is_admin()) {
+        $cartId = user_cart_id((int)current_user()['id'], $quantity > 0);
+        if ($cartId === null) {
+            return;
+        }
+        if ($quantity <= 0) {
+            db_query('DELETE FROM cart_items WHERE cart_id = ? AND product_id = ?', [$cartId, $productId]);
+        } else {
+            db_query(
+                'INSERT INTO cart_items (cart_id, product_id, quantity) VALUES (?, ?, ?)
+                 ON DUPLICATE KEY UPDATE quantity = VALUES(quantity)',
+                [$cartId, $productId, $quantity]
+            );
+        }
+        db_query('UPDATE carts SET updated_at = CURRENT_TIMESTAMP WHERE id = ?', [$cartId]);
+        return;
+    }
+
+    $cart = session_cart();
+    if ($quantity <= 0) {
+        unset($cart[$productId]);
+    } else {
+        $cart[$productId] = $quantity;
+    }
+    $_SESSION['cart'] = $cart;
+}
+
+function cart_remove_item(int $productId): void
+{
+    cart_set_item($productId, 0);
+}
+
+function cart_clear(?int $userId = null): void
+{
+    $uid = $userId;
+    if ($uid === null && function_exists('is_logged_in') && is_logged_in() && !is_admin()) {
+        $uid = (int)current_user()['id'];
+    }
+    if ($uid !== null && $uid > 0) {
+        db_query(
+            'DELETE ci FROM cart_items ci
+             JOIN carts c ON c.id = ci.cart_id
+             WHERE c.user_id = ?',
+            [$uid]
+        );
+    }
+    unset($_SESSION['cart']);
+}
+
+/** Gộp giỏ hàng session vào giỏ lưu trong CSDL của khách hàng khi đăng nhập (F19). */
+function merge_session_cart(int $userId): void
+{
+    $sessionItems = session_cart();
+    if (!$sessionItems) {
+        return;
+    }
+
+    $cartId = user_cart_id($userId, true);
+    if ($cartId === null) {
+        return;
+    }
+
+    $existingRows = db_query(
+        'SELECT product_id, quantity FROM cart_items WHERE cart_id = ?',
+        [$cartId]
+    )->fetchAll();
+
+    $existing = [];
+    foreach ($existingRows as $row) {
+        $existing[(int)$row['product_id']] = (int)$row['quantity'];
+    }
+
+    foreach ($sessionItems as $productId => $addQty) {
+        $prod = db_query(
+            'SELECT p.stock
+             FROM products p
+             JOIN categories c ON c.id = p.category_id
+             WHERE p.id = ? AND p.status = 1 AND c.status = 1',
+            [$productId]
+        )->fetch();
+
+        if (!$prod || (int)$prod['stock'] <= 0) {
+            continue;
+        }
+
+        $mergedQty = min((int)$prod['stock'], ($existing[$productId] ?? 0) + $addQty);
+        if ($mergedQty > 0) {
+            db_query(
+                'INSERT INTO cart_items (cart_id, product_id, quantity) VALUES (?, ?, ?)
+                 ON DUPLICATE KEY UPDATE quantity = VALUES(quantity)',
+                [$cartId, $productId, $mergedQty]
+            );
+            $existing[$productId] = $mergedQty;
+        }
+    }
+
+    db_query('UPDATE carts SET updated_at = CURRENT_TIMESTAMP WHERE id = ?', [$cartId]);
+    unset($_SESSION['cart']);
 }
 
 /* ---------- Phân trang ---------- */

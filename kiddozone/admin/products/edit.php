@@ -193,28 +193,36 @@ foreach ($imagesToDelete as $image) {
             );
 
          
-// Kiểm tra ảnh đại diện còn tồn tại hay không
+// Kiểm tra ảnh đại diện: ưu tiên ảnh được chọn từ radio main_image_id
+$mainImageId = filter_var($_POST['main_image_id'] ?? null, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
+$remainingIds = array_map(fn($img) => (int)$img['id'], $remainingImages);
 $hasMain = false;
 
-foreach ($remainingImages as $image) {
-    if ((int)$image['is_main'] === 1) {
-        $hasMain = true;
-        break;
-    }
-}
-
-// Nếu ảnh đại diện bị xóa, chọn ảnh cũ còn lại đầu tiên
-if (!$hasMain && count($remainingImages) > 0) {
-    $newMainId = (int)$remainingImages[0]['id'];
-
-    db_query(
-        'UPDATE product_images
-         SET is_main = 1
-         WHERE id = ? AND product_id = ?',
-        [$newMainId, $id]
-    );
-
+if ($mainImageId !== false && in_array($mainImageId, $remainingIds, true)) {
+    db_query('UPDATE product_images SET is_main = 0 WHERE product_id = ?', [$id]);
+    db_query('UPDATE product_images SET is_main = 1 WHERE id = ? AND product_id = ?', [$mainImageId, $id]);
     $hasMain = true;
+} else {
+    foreach ($remainingImages as $image) {
+        if ((int)$image['is_main'] === 1) {
+            $hasMain = true;
+            break;
+        }
+    }
+
+    // Nếu ảnh đại diện bị xóa hoặc chưa có, chọn ảnh cũ còn lại đầu tiên
+    if (!$hasMain && count($remainingImages) > 0) {
+        $newMainId = (int)$remainingImages[0]['id'];
+
+        db_query(
+            'UPDATE product_images
+             SET is_main = 1
+             WHERE id = ? AND product_id = ?',
+            [$newMainId, $id]
+        );
+
+        $hasMain = true;
+    }
 }
 
 
@@ -413,11 +421,16 @@ require __DIR__ . '/../admin_header.php';
                     &times;
                 </button>
 
-                <?php if ((int)$image['is_main'] === 1): ?>
-                    <span class="badge bg-primary position-absolute bottom-0 start-0 m-2">
-                        Ảnh đại diện
-                    </span>
-                <?php endif; ?>
+                <label class="badge bg-dark bg-opacity-75 position-absolute bottom-0 start-0 m-2 d-inline-flex align-items-center gap-1" style="cursor:pointer;">
+                    <input
+                        type="radio"
+                        name="main_image_id"
+                        value="<?= (int)$image['id'] ?>"
+                        class="form-check-input m-0"
+                        <?= (int)$image['is_main'] === 1 ? 'checked' : '' ?>
+                    >
+                    Ảnh đại diện
+                </label>
 
             </div>
         <?php endforeach; ?>
