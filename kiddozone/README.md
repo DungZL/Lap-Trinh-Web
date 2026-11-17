@@ -61,6 +61,9 @@ Tài khoản mẫu: `admin@kiddozone.test` / `Admin@123`; khách: `khach1@kiddoz
 - Thông báo: `flash('success'|'danger'|'warning', '...')`, header tự hiển thị.
 - Phân trang: `[$offset, $pages, $page] = paginate($total, ITEMS_PER_PAGE_SHOP);` rồi `LIMIT <int> OFFSET <int>`, in thanh phân trang bằng `render_pagination($page, $pages)` (giữ nguyên bộ lọc).
 - Giá: `format_price($x)`; giá đang bán: `effective_price($product)`.
+- Giỏ hàng khách vãng lai lưu trong `$_SESSION['cart']` theo dạng `product_id => quantity`; thao tác thêm, cập nhật và xóa thực hiện bằng POST có CSRF tại `cart.php`.
+- Khách hàng đã đăng nhập xem danh sách và chi tiết đơn tại `account/orders.php`; chỉ đơn ở trạng thái `pending` mới có thể hủy, khi hủy sẽ hoàn tồn kho trong cùng transaction.
+- Admin quản lý đơn tại `admin/orders.php`: tìm kiếm, phân trang 10 đơn, cập nhật trạng thái theo luồng `pending` → `confirmed` → `shipping` → `completed`; đơn chưa giao có thể hủy và hoàn tồn kho.
 - Upload ảnh: `save_uploaded_image($file)` (kiểm MIME, tối đa 2MB, tên ngẫu nhiên).
 - Giỏ hàng khi đăng nhập: định nghĩa hàm `merge_session_cart(int $userId)` (task F19), `login_user()` sẽ tự gọi.
 
@@ -72,6 +75,8 @@ kiddozone/
 ├── account/          trang của khách hàng: hồ sơ, đơn hàng, yêu thích
 ├── admin/            trang quản trị: admin_header/footer.php (layout), categories/, products/...
 ├── includes/         init, config, db, functions, auth, header, footer, product_card
+├── cart.php, orders.php giỏ hàng và lịch sử đơn
+├── admin/orders.php   quản lý đơn hàng
 ├── assets/           css/, js/, img/
 ├── uploads/          ảnh sản phẩm (không chạy được PHP)
 └── database/         kiddozone.sql
