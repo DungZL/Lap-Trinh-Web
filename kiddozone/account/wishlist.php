@@ -80,6 +80,7 @@ require_customer(); // chưa đăng nhập thì chuyển sang login.php, Admin t
 
 $products = db_query(
     'SELECT p.id, p.name, p.price, p.sale_price, p.stock, c.name AS category_name,
+            ' . review_rating_columns() . ',
             (SELECT pi.image_path FROM product_images pi
               WHERE pi.product_id = p.id
               ORDER BY pi.is_main DESC, pi.id ASC LIMIT 1) AS image

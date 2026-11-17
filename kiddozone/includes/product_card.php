@@ -4,6 +4,7 @@
 // $p cần có: id, name, price, sale_price, stock, category_name, image.
 
 require_once __DIR__ . '/wishlist.php';
+require_once __DIR__ . '/reviews.php';
 
 if (!function_exists('product_image_url')) {
     /** image_path là "assets/..." (ảnh mẫu) hoặc tên file trong uploads/ (ảnh Admin tải lên). */
@@ -44,6 +45,12 @@ if (!function_exists('render_product_card')) {
                     <h3 class="h6 kz-product-name mb-2">
                         <a class="stretched-link text-reset text-decoration-none" href="<?= e($detail) ?>"><?= e($p['name']) ?></a>
                     </h3>
+                    <?php if ((int)($p['review_count'] ?? 0) > 0): ?>
+                        <div class="kz-rating mb-1" aria-label="Điểm trung bình <?= e(review_format_avg((float)$p['avg_rating'])) ?> trên 5, <?= (int)$p['review_count'] ?> đánh giá">
+                            <?php render_stars((float)$p['avg_rating']); ?>
+                            <small><?= e(review_format_avg((float)$p['avg_rating'])) ?> (<?= (int)$p['review_count'] ?>)</small>
+                        </div>
+                    <?php endif; ?>
                     <div class="mt-auto">
                         <span class="kz-price"><?= e(format_price($final)) ?></span>
                         <?php if ($onSale): ?>

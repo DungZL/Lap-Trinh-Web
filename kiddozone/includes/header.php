@@ -31,6 +31,7 @@ $searchValue = ($currentPage === 'products.php' && is_string($_GET['q'] ?? null)
     <link href="<?= e(url('assets/css/header-footer.css')) ?>" rel="stylesheet">
     <link href="<?= e(url('assets/css/shop.css')) ?>" rel="stylesheet">
     <link href="<?= e(url('assets/css/wishlist.css')) ?>" rel="stylesheet">
+    <link href="<?= e(url('assets/css/reviews.css')) ?>" rel="stylesheet">
     <?php foreach ($extraCss ?? [] as $href): /* CSS riêng của trang, ví dụ auth.css */ ?>
         <link href="<?= e($href) ?>" rel="stylesheet">
     <?php endforeach; ?>

@@ -146,6 +146,24 @@ $percent = $onSale ? (int)round((1 - $final / $price) * 100) : 0;
 $stock   = (int)$product['stock'];
 $description = sanitize_description_html((string)($product['description'] ?? ''));
 
+// Đánh giá: điểm trung bình, danh sách, và trạng thái của người đang xem.
+$reviewSummary = review_summary((int)$product['id']);
+$reviews       = review_list((int)$product['id'], 10);
+$reviewNotice  = review_notice_pull(); // thông báo sau khi gửi đánh giá
+$me            = current_user();
+$myReview      = null;
+if (!$me) {
+    $reviewState = 'guest';
+} elseif (is_admin()) {
+    $reviewState = 'admin';
+} elseif (review_can_review((int)$me['id'], (int)$product['id'])) {
+    $reviewState = 'can';
+    $myReview = review_get((int)$me['id'], (int)$product['id']);
+} else {
+    $reviewState = 'not_bought';
+}
+$reviewLoginUrl = url('login.php?redirect=' . urlencode(url('product.php?id=' . (int)$product['id'] . '#reviews')));
+
 $pageTitle = $product['name'];
 require __DIR__ . '/includes/header.php';
 ?>
@@ -184,6 +202,14 @@ require __DIR__ . '/includes/header.php';
     <div class="col-md-6">
         <a class="text-muted small" href="<?= e(url('products.php?category=' . (int)$product['category_id'])) ?>"><?= e($product['category_name']) ?></a>
         <h1 class="kz-detail-title"><?= e($product['name']) ?></h1>
+
+        <?php if ($reviewSummary['count'] > 0): ?>
+            <a class="kz-rating-link" href="#reviews">
+                <?php render_stars($reviewSummary['avg']); ?>
+                <strong><?= e(review_format_avg($reviewSummary['avg'])) ?></strong>
+                <span class="text-muted">(<?= $reviewSummary['count'] ?> đánh giá)</span>
+            </a>
+        <?php endif; ?>
 
         <div class="mb-3">
             <span class="kz-detail-price"><?= e(format_price($final)) ?></span>
@@ -235,6 +261,70 @@ require __DIR__ . '/includes/header.php';
     <?php else: ?>
         <p class="text-muted">Chưa có mô tả cho sản phẩm này.</p>
     <?php endif; ?>
+</section>
+
+<!-- Đánh giá -->
+<section class="mb-5" id="reviews">
+    <h2 class="kz-section-title">Đánh giá sản phẩm</h2>
+
+    <?php if ($reviewNotice): ?>
+        <div class="alert alert-<?= e($reviewNotice['type']) ?>"><?= e($reviewNotice['message']) ?></div>
+    <?php endif; ?>
+
+    <?php if ($reviewSummary['count'] > 0): ?>
+        <div class="d-flex align-items-center gap-3 mb-3">
+            <span class="kz-rating-big"><?= e(review_format_avg($reviewSummary['avg'])) ?></span>
+            <div>
+                <?php render_stars($reviewSummary['avg']); ?>
+                <div class="text-muted small"><?= $reviewSummary['count'] ?> đánh giá</div>
+            </div>
+        </div>
+    <?php else: ?>
+        <p class="text-muted">Chưa có đánh giá nào cho sản phẩm này.</p>
+    <?php endif; ?>
+
+    <?php if ($reviewState === 'guest'): ?>
+        <p><a href="<?= e($reviewLoginUrl) ?>">Đăng nhập</a> để đánh giá sản phẩm bạn đã mua.</p>
+    <?php elseif ($reviewState === 'not_bought'): ?>
+        <div class="alert alert-light border">Chỉ khách đã mua sản phẩm này và có đơn hàng đã hoàn thành mới đánh giá được.</div>
+    <?php elseif ($reviewState === 'can'): ?>
+        <form method="post" action="<?= e(url('account/review.php')) ?>" class="card card-body mb-4">
+            <?= csrf_field() ?>
+            <input type="hidden" name="product_id" value="<?= (int)$product['id'] ?>">
+            <h3 class="h6"><?= $myReview ? 'Cập nhật đánh giá của bạn' : 'Viết đánh giá của bạn' ?></h3>
+            <?php if ($myReview && (int)$myReview['status'] === 0): ?>
+                <p class="small text-muted mb-2">Đánh giá hiện tại của bạn đang được quản trị viên ẩn.</p>
+            <?php endif; ?>
+            <div class="mb-2">
+                <div class="kz-star-input" role="radiogroup" aria-label="Chọn số sao">
+                    <?php for ($i = 5; $i >= 1; $i--): ?>
+                        <input type="radio" name="rating" id="star<?= $i ?>" value="<?= $i ?>"
+                               <?= ($myReview && (int)$myReview['rating'] === $i) ? 'checked' : '' ?> required>
+                        <label for="star<?= $i ?>" title="<?= $i ?> sao"><i class="bi bi-star-fill"></i><span class="visually-hidden"><?= $i ?> sao</span></label>
+                    <?php endfor; ?>
+                </div>
+            </div>
+            <div class="mb-3">
+                <label class="form-label" for="comment">Bình luận (không bắt buộc)</label>
+                <textarea class="form-control" id="comment" name="comment" rows="3" maxlength="1000"
+                          placeholder="Chia sẻ cảm nhận của bạn về sản phẩm"><?= e($myReview['comment'] ?? '') ?></textarea>
+            </div>
+            <div><button class="btn kz-btn-register" type="submit"><?= $myReview ? 'Cập nhật đánh giá' : 'Gửi đánh giá' ?></button></div>
+        </form>
+    <?php endif; ?>
+
+    <?php foreach ($reviews as $r): ?>
+        <article class="kz-review">
+            <div class="kz-review-meta">
+                <?php render_stars((float)$r['rating']); ?>
+                <strong><?= e(review_mask_name($r['full_name'])) ?></strong>
+                <small class="text-muted"><?= e(date('d/m/Y', strtotime($r['created_at']))) ?></small>
+            </div>
+            <?php if ($r['comment'] !== null && $r['comment'] !== ''): ?>
+                <p class="kz-review-comment"><?= nl2br(e($r['comment'])) ?></p>
+            <?php endif; ?>
+        </article>
+    <?php endforeach; ?>
 </section>
 
 <?php render_recently_viewed(recently_viewed_products($recentIds)); ?>

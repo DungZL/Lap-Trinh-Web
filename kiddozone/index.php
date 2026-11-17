@@ -20,6 +20,7 @@ $categories = db_query(
 // Câu SELECT chung cho 2 danh sách sản phẩm (kèm ảnh chính, nếu không có ảnh chính thì lấy ảnh đầu tiên).
 $productSelect =
     'SELECT p.id, p.name, p.price, p.sale_price, p.stock, c.name AS category_name,
+            ' . review_rating_columns() . ',
             (SELECT pi.image_path FROM product_images pi
               WHERE pi.product_id = p.id
               ORDER BY pi.is_main DESC, pi.id ASC LIMIT 1) AS image
