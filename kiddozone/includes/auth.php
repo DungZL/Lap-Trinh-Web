@@ -3,7 +3,36 @@
 
 function current_user(): ?array
 {
-    return $_SESSION['user'] ?? null;
+    static $verified = false;
+    $user = $_SESSION['user'] ?? null;
+    if (!$user) {
+        return null;
+    }
+
+    if (!$verified) {
+        $verified = true;
+        try {
+            $fresh = db_query(
+                'SELECT id, full_name, email, role, status FROM users WHERE id = ?',
+                [(int)$user['id']]
+            )->fetch();
+            if (!$fresh || (int)$fresh['status'] === 0) {
+                unset($_SESSION['user']);
+                return null;
+            }
+            $_SESSION['user'] = [
+                'id'        => (int)$fresh['id'],
+                'full_name' => $fresh['full_name'],
+                'email'     => $fresh['email'],
+                'role'      => $fresh['role'],
+            ];
+            $user = $_SESSION['user'];
+        } catch (Throwable $e) {
+            // Bỏ qua khi chạy ở môi trường chưa kết nối được CSDL.
+        }
+    }
+
+    return $user;
 }
 
 function is_logged_in(): bool
@@ -16,10 +45,16 @@ function is_admin(): bool
     return (current_user()['role'] ?? '') === 'admin';
 }
 
-/** Chỉ cho phép đường dẫn nội bộ khi chuyển hướng sau đăng nhập (chống open redirect). */
+/** Chỉ cho phép đường dẫn nội bộ khi chuyển hướng sau đăng nhập (chống open redirect & header injection). */
 function safe_redirect_target(?string $target, string $fallback = 'index.php'): string
 {
-    if ($target && $target[0] === '/' && !str_starts_with($target, '//') && !str_contains($target, '\\')) {
+    if ($target
+        && $target[0] === '/'
+        && !str_starts_with($target, '//')
+        && !str_contains($target, '\\')
+        && !str_contains($target, "\r")
+        && !str_contains($target, "\n")
+    ) {
         return $target;
     }
     return $fallback;

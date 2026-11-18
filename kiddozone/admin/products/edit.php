@@ -64,7 +64,7 @@ if (is_post()) {
         FILTER_VALIDATE_INT
     );
 
-    $description = trim((string)($_POST['description'] ?? ''));
+    $description = sanitize_description_html((string)($_POST['description'] ?? ''));
 
     $status = filter_var(
         $_POST['status'] ?? null,

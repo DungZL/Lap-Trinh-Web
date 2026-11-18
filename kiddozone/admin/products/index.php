@@ -155,13 +155,13 @@ require __DIR__ . '/../admin_header.php';
                         <td>
                             <?php if ($product['sale_price'] !== null): ?>
                                 <div class="text-danger fw-bold">
-                                    <?= format_price($product['sale_price']) ?>
+                                    <?= e(format_price($product['sale_price'])) ?>
                                 </div>
                                 <small class="text-muted text-decoration-line-through">
-                                    <?= format_price($product['price']) ?>
+                                    <?= e(format_price($product['price'])) ?>
                                 </small>
                             <?php else: ?>
-                                <?= format_price($product['price']) ?>
+                                <?= e(format_price($product['price'])) ?>
                             <?php endif; ?>
                         </td>
 
