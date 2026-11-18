@@ -332,12 +332,13 @@ function csrf_field(): string
     return '<input type="hidden" name="csrf_token" value="' . e(csrf_token()) . '">';
 }
 
-/** Gọi ở đầu mọi xử lý POST. Sai hoặc thiếu token thì dừng, không đổi dữ liệu. */
+/** Gọi ở đầu mọi xử lý POST. Sai, thiếu hoặc chưa có token trong phiên thì dừng, không đổi dữ liệu. */
 function csrf_verify(): void
 {
+    $expected = $_SESSION['csrf_token'] ?? '';
     $sent = $_POST['csrf_token'] ?? '';
-    if (!is_string($sent) || !hash_equals($_SESSION['csrf_token'] ?? '', $sent)) {
-        http_response_code(419);
+    if (!is_string($expected) || $expected === '' || !is_string($sent) || $sent === '' || !hash_equals($expected, $sent)) {
+        http_response_code(403);
         exit('Phiên làm việc không hợp lệ (CSRF). Vui lòng tải lại trang và thử lại.');
     }
 }
