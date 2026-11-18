@@ -136,7 +136,7 @@ if ($showOrder) {
     $params = [];
     if ($search !== '') {
         $where = 'WHERE o.code LIKE ? OR o.receiver_name LIKE ? OR o.receiver_phone LIKE ? OR u.full_name LIKE ? OR u.email LIKE ?';
-        $term = '%' . $search . '%';
+        $term = '%' . addcslashes($search, '%_\\') . '%';
         $params = [$term, $term, $term, $term, $term];
     }
 
@@ -147,7 +147,7 @@ if ($showOrder) {
          ' . $where,
         $params
     )->fetchColumn();
-    [$offset, $pages, $page] = paginate($totalOrders, 10);
+    [$offset, $pages, $page] = paginate($totalOrders, ITEMS_PER_PAGE_ADMIN);
     $orders = db_query(
         'SELECT o.id, o.code, o.receiver_name, o.receiver_phone, o.total_amount, o.status, o.created_at,
                 u.full_name, u.email
@@ -155,7 +155,7 @@ if ($showOrder) {
          INNER JOIN users u ON u.id = o.user_id
          ' . $where . '
          ORDER BY o.created_at DESC, o.id DESC
-         LIMIT 10 OFFSET ' . (int)$offset,
+         LIMIT ' . (int)ITEMS_PER_PAGE_ADMIN . ' OFFSET ' . (int)$offset,
         $params
     )->fetchAll();
 }

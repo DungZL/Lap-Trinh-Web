@@ -332,12 +332,13 @@ function csrf_field(): string
     return '<input type="hidden" name="csrf_token" value="' . e(csrf_token()) . '">';
 }
 
-/** Gọi ở đầu mọi xử lý POST. Sai hoặc thiếu token thì dừng, không đổi dữ liệu. */
+/** Gọi ở đầu mọi xử lý POST. Sai, thiếu hoặc chưa có token trong phiên thì dừng, không đổi dữ liệu. */
 function csrf_verify(): void
 {
+    $expected = $_SESSION['csrf_token'] ?? '';
     $sent = $_POST['csrf_token'] ?? '';
-    if (!is_string($sent) || !hash_equals($_SESSION['csrf_token'] ?? '', $sent)) {
-        http_response_code(419);
+    if (!is_string($expected) || $expected === '' || !is_string($sent) || $sent === '' || !hash_equals($expected, $sent)) {
+        http_response_code(403);
         exit('Phiên làm việc không hợp lệ (CSRF). Vui lòng tải lại trang và thử lại.');
     }
 }
@@ -369,4 +370,99 @@ function save_uploaded_image(array $file): string
         throw new RuntimeException('Không lưu được ảnh.');
     }
     return $name;
+}
+
+/* ---------- Lọc HTML mô tả (TinyMCE) ---------- */
+
+/**
+ * Lọc HTML mô tả (từ TinyMCE) trước khi lưu hoặc in ra: bỏ script/iframe/form/style...,
+ * bỏ mọi thuộc tính ngoài danh sách cho phép, bỏ link javascript:/data:.
+ */
+function sanitize_description_html(string $html): string
+{
+    $html = trim($html);
+    if ($html === '') {
+        return '';
+    }
+    if (!class_exists('DOMDocument')) {
+        return nl2br(e(strip_tags($html))); // không có extension DOM thì hiện dạng chữ thường
+    }
+
+    $allowedTags = [
+        'p', 'br', 'strong', 'b', 'em', 'i', 'u', 's', 'ul', 'ol', 'li', 'h2', 'h3', 'h4', 'h5',
+        'blockquote', 'a', 'img', 'table', 'thead', 'tbody', 'tr', 'th', 'td', 'span', 'div', 'hr',
+    ];
+    $dropTags = [
+        'script', 'style', 'iframe', 'object', 'embed', 'form', 'input', 'button', 'textarea',
+        'select', 'link', 'meta', 'svg', 'math', 'base',
+    ];
+    $allowedAttrs   = ['href', 'src', 'alt', 'title', 'colspan', 'rowspan', 'width', 'height'];
+    $allowedSchemes = ['http', 'https', 'mailto'];
+
+    $dom = new DOMDocument();
+    libxml_use_internal_errors(true);
+    $dom->loadHTML('<?xml encoding="UTF-8"><div>' . $html . '</div>', LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD);
+    libxml_clear_errors();
+    $root = $dom->getElementsByTagName('div')->item(0);
+    if (!$root) {
+        return '';
+    }
+
+    $clean = function (DOMNode $node) use (&$clean, $allowedTags, $dropTags, $allowedAttrs, $allowedSchemes): void {
+        foreach (iterator_to_array($node->childNodes) as $child) {
+            if ($child instanceof DOMComment) {
+                $node->removeChild($child);
+                continue;
+            }
+            if (!($child instanceof DOMElement)) {
+                continue;
+            }
+            $tag = strtolower($child->tagName);
+
+            if (in_array($tag, $dropTags, true)) {
+                $node->removeChild($child);
+                continue;
+            }
+            if (!in_array($tag, $allowedTags, true)) {
+                // Thẻ lạ: bỏ thẻ nhưng giữ nội dung bên trong.
+                $clean($child);
+                while ($child->firstChild) {
+                    $node->insertBefore($child->firstChild, $child);
+                }
+                $node->removeChild($child);
+                continue;
+            }
+
+            foreach (iterator_to_array($child->attributes) as $attr) {
+                $name = strtolower($attr->name);
+                if (!in_array($name, $allowedAttrs, true)) {
+                    $child->removeAttribute($attr->name);
+                    continue;
+                }
+                if ($name === 'href' || $name === 'src') {
+                    $val = strtolower(preg_replace('/[\x00-\x20]+/', '', $attr->value));
+                    if (preg_match('/^([a-z][a-z0-9+.\-]*):/', $val, $m) && !in_array($m[1], $allowedSchemes, true)) {
+                        $child->removeAttribute($attr->name); // ví dụ javascript:, data:
+                    }
+                }
+            }
+
+            if ($tag === 'a') {
+                $child->setAttribute('rel', 'noopener noreferrer');
+            } elseif ($tag === 'img') {
+                $child->setAttribute('class', 'img-fluid');
+                $child->setAttribute('loading', 'lazy');
+            } elseif ($tag === 'table') {
+                $child->setAttribute('class', 'table table-bordered');
+            }
+            $clean($child);
+        }
+    };
+    $clean($root);
+
+    $out = '';
+    foreach ($root->childNodes as $child) {
+        $out .= $dom->saveHTML($child);
+    }
+    return $out;
 }
