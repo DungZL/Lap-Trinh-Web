@@ -1,0 +1,89 @@
+/* Nút trái tim yêu thích (F17) */
+.kz-wish-form {
+    position: absolute;
+    top: .6rem;
+    right: .6rem;
+    z-index: 3; /* cao hơn liên kết phủ kín thẻ (stretched-link) để bấm được */
+    margin: 0;
+}
+
+.kz-wish-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.2rem;
+    height: 2.2rem;
+    border: 0;
+    border-radius: 50%;
+    background: #fff;
+    color: #6B7690;
+    font-size: 1.1rem;
+    box-shadow: 0 2px 6px rgba(35, 48, 74, .2);
+    cursor: pointer;
+    transition: transform .15s, color .15s;
+}
+
+    .kz-wish-btn:hover {
+        color: #E5484D;
+        transform: scale(1.1);
+    }
+
+    .kz-wish-btn.active {
+        color: #E5484D;
+    }
+
+    .kz-wish-btn:focus-visible {
+        outline: 3px solid var(--kz-sun-dark);
+        outline-offset: 2px;
+    }
+
+/* Trang chi tiết sản phẩm: nút có chữ, không nổi trên ảnh */
+.kz-wish-form-inline {
+    position: static;
+}
+
+.kz-wish-btn-label {
+    width: auto;
+    height: auto;
+    gap: .4rem;
+    padding: .5rem 1.1rem;
+    border: 2px solid #E5484D;
+    border-radius: 999px;
+    font-weight: 700;
+    font-size: 1rem;
+    color: #E5484D;
+    box-shadow: none;
+}
+
+    .kz-wish-btn-label:hover {
+        transform: none;
+        background: #FFF0F0;
+    }
+
+    .kz-wish-btn-label.active {
+        background: #E5484D;
+        color: #fff;
+    }
+
+/* Thông báo nhỏ khi bấm tim (do assets/js/shop.js tạo ra) */
+.kz-toast {
+    position: fixed;
+    left: 50%;
+    bottom: 1.5rem;
+    z-index: 1080;
+    padding: .6rem 1.2rem;
+    border-radius: 999px;
+    background: var(--kz-ink);
+    color: #fff;
+    font-weight: 600;
+    box-shadow: 0 6px 16px rgba(35, 48, 74, .3);
+    opacity: 0;
+    transform: translate(-50%, 1rem);
+    pointer-events: none;
+    transition: opacity .2s, transform .2s;
+}
+
+    .kz-toast.show {
+        opacity: 1;
+        transform: translate(-50%, 0);
+    }

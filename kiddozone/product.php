@@ -1,0 +1,243 @@
+<?php
+// Chi tiết sản phẩm (task F05): gallery ảnh, giá/giá khuyến mãi, tồn kho, mô tả HTML, nút thêm vào giỏ.
+require_once __DIR__ . '/includes/init.php';
+require_once __DIR__ . '/includes/product_card.php';
+require_once __DIR__ . '/includes/recently_viewed.php';
+
+/* ---------- 1. Lấy sản phẩm ---------- */
+
+$idRaw = $_GET['id'] ?? 0;
+$id = is_string($idRaw) ? (int)$idRaw : 0;
+
+$product = false;
+if ($id > 0) {
+    $product = db_query(
+        'SELECT p.*, c.name AS category_name
+         FROM products p
+         JOIN categories c ON c.id = p.category_id
+         WHERE p.id = ? AND p.status = 1 AND c.status = 1',
+        [$id]
+    )->fetch();
+}
+
+if (!$product) {
+    http_response_code(404);
+    $pageTitle = 'Không tìm thấy sản phẩm';
+    require __DIR__ . '/includes/header.php';
+    ?>
+    <div class="text-center py-5">
+        <i class="bi bi-emoji-frown fs-1 text-muted"></i>
+        <h1 class="h4 mt-2">Không tìm thấy sản phẩm</h1>
+        <p class="text-muted">Sản phẩm không tồn tại hoặc đã ngừng bán.</p>
+        <a class="btn kz-btn-register" href="<?= e(url('products.php')) ?>">Xem tất cả sản phẩm</a>
+    </div>
+    <?php
+    require __DIR__ . '/includes/footer.php';
+    exit;
+}
+
+// Ảnh: ảnh chính đứng đầu. Chưa có ảnh nào thì dùng ảnh mẫu.
+$images = db_query(
+    'SELECT image_path FROM product_images WHERE product_id = ? ORDER BY is_main DESC, id ASC',
+    [$product['id']]
+)->fetchAll(PDO::FETCH_COLUMN);
+$imageUrls = $images ? array_map('product_image_url', $images) : [product_image_url(null)];
+$fallbackImg = product_image_url(null);
+
+// Sản phẩm đã xem trước đó (không gồm sản phẩm này), rồi mới ghi nhận lượt xem hiện tại vào cookie.
+$recentIds = array_values(array_diff(recently_viewed_ids(), [(int)$product['id']]));
+recently_viewed_add((int)$product['id']);
+
+/* ---------- 2. Chuẩn bị hiển thị ---------- */
+
+$price   = (float)$product['price'];
+$final   = effective_price($product);
+$onSale  = $final < $price;
+$percent = $onSale ? (int)round((1 - $final / $price) * 100) : 0;
+$stock   = (int)$product['stock'];
+$description = sanitize_description_html((string)($product['description'] ?? ''));
+
+// Đánh giá: điểm trung bình, danh sách, và trạng thái của người đang xem.
+$reviewSummary = review_summary((int)$product['id']);
+$reviews       = review_list((int)$product['id'], 10);
+$reviewNotice  = review_notice_pull(); // thông báo sau khi gửi đánh giá
+$me            = current_user();
+$myReview      = null;
+if (!$me) {
+    $reviewState = 'guest';
+} elseif (is_admin()) {
+    $reviewState = 'admin';
+} elseif (review_can_review((int)$me['id'], (int)$product['id'])) {
+    $reviewState = 'can';
+    $myReview = review_get((int)$me['id'], (int)$product['id']);
+} else {
+    $reviewState = 'not_bought';
+}
+$reviewLoginUrl = url('login.php?redirect=' . urlencode(url('product.php?id=' . (int)$product['id'] . '#reviews')));
+
+$pageTitle = $product['name'];
+require __DIR__ . '/includes/header.php';
+?>
+
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="<?= e(url('index.php')) ?>">Trang chủ</a></li>
+        <li class="breadcrumb-item"><a href="<?= e(url('products.php')) ?>">Sản phẩm</a></li>
+        <li class="breadcrumb-item"><a href="<?= e(url('products.php?category=' . (int)$product['category_id'])) ?>"><?= e($product['category_name']) ?></a></li>
+        <li class="breadcrumb-item active" aria-current="page"><?= e($product['name']) ?></li>
+    </ol>
+</nav>
+
+<div class="row g-4 mb-5">
+
+    <!-- Gallery ảnh -->
+    <div class="col-md-6">
+        <div class="kz-gallery-main ratio ratio-1x1">
+            <img id="kz-main-img" src="<?= e($imageUrls[0]) ?>" alt="<?= e($product['name']) ?>"
+                 data-fallback="<?= e($fallbackImg) ?>">
+        </div>
+        <?php if (count($imageUrls) > 1): ?>
+            <div class="kz-thumbs">
+                <?php foreach ($imageUrls as $i => $src): ?>
+                    <button type="button" class="kz-thumb <?= $i === 0 ? 'active' : '' ?>"
+                            data-src="<?= e($src) ?>" aria-label="Xem ảnh <?= $i + 1 ?>">
+                        <img src="<?= e($src) ?>" alt="" loading="lazy"
+                             data-fallback="<?= e($fallbackImg) ?>">
+                    </button>
+                <?php endforeach; ?>
+            </div>
+        <?php endif; ?>
+    </div>
+
+    <!-- Thông tin -->
+    <div class="col-md-6">
+        <a class="text-muted small" href="<?= e(url('products.php?category=' . (int)$product['category_id'])) ?>"><?= e($product['category_name']) ?></a>
+        <h1 class="kz-detail-title"><?= e($product['name']) ?></h1>
+
+        <?php if ($reviewSummary['count'] > 0): ?>
+            <a class="kz-rating-link" href="#reviews">
+                <?php render_stars($reviewSummary['avg']); ?>
+                <strong><?= e(review_format_avg($reviewSummary['avg'])) ?></strong>
+                <span class="text-muted">(<?= $reviewSummary['count'] ?> đánh giá)</span>
+            </a>
+        <?php endif; ?>
+
+        <div class="mb-3">
+            <span class="kz-detail-price"><?= e(format_price($final)) ?></span>
+            <?php if ($onSale): ?>
+                <span class="kz-price-old fs-5"><?= e(format_price($price)) ?></span>
+                <span class="badge kz-detail-sale">-<?= $percent ?>%</span>
+            <?php endif; ?>
+        </div>
+
+        <p class="mb-4">
+            <?php if ($stock <= 0): ?>
+                <span class="fw-bold text-danger"><i class="bi bi-x-circle"></i> Hết hàng</span>
+            <?php elseif ($stock <= 5): ?>
+                <span class="fw-bold text-warning-emphasis"><i class="bi bi-exclamation-circle"></i> Chỉ còn <?= $stock ?> sản phẩm</span>
+            <?php else: ?>
+                <span class="fw-bold text-success"><i class="bi bi-check-circle"></i> Còn hàng</span>
+                <span class="text-muted">(<?= $stock ?> sản phẩm)</span>
+            <?php endif; ?>
+        </p>
+
+        <!-- Thêm vào giỏ: gửi tới cart.php (action=add). Số lượng thật sự được backend giới hạn theo tồn kho. -->
+        <form method="post" action="<?= e(url('cart.php')) ?>" class="kz-add-cart">
+            <?= csrf_field() ?>
+            <input type="hidden" name="action" value="add">
+            <input type="hidden" name="product_id" value="<?= (int)$product['id'] ?>">
+            <div class="d-flex flex-wrap align-items-center gap-3">
+                <div>
+                    <label class="form-label mb-1" for="quantity">Số lượng</label>
+                    <input class="form-control kz-qty" type="number" id="quantity" name="quantity"
+                           value="1" min="1" max="<?= max(1, $stock) ?>" <?= $stock <= 0 ? 'disabled' : '' ?> required>
+                </div>
+                <button class="btn btn-lg kz-btn-register align-self-end" type="submit" <?= $stock <= 0 ? 'disabled' : '' ?>>
+                    <i class="bi bi-cart-plus"></i> Thêm vào giỏ
+                </button>
+            </div>
+        </form>
+
+        <div class="mt-3" id="product-<?= (int)$product['id'] ?>">
+            <?php render_wishlist_button((int)$product['id'], true); ?>
+        </div>
+    </div>
+</div>
+
+<!-- Mô tả -->
+<section class="mb-5">
+    <h2 class="kz-section-title">Mô tả sản phẩm</h2>
+    <?php if ($description !== ''): ?>
+        <div class="kz-description"><?= $description /* đã lọc bằng sanitize_description_html() */ ?></div>
+    <?php else: ?>
+        <p class="text-muted">Chưa có mô tả cho sản phẩm này.</p>
+    <?php endif; ?>
+</section>
+
+<!-- Đánh giá -->
+<section class="mb-5" id="reviews">
+    <h2 class="kz-section-title">Đánh giá sản phẩm</h2>
+
+    <?php if ($reviewNotice): ?>
+        <div class="alert alert-<?= e($reviewNotice['type']) ?>"><?= e($reviewNotice['message']) ?></div>
+    <?php endif; ?>
+
+    <?php if ($reviewSummary['count'] > 0): ?>
+        <div class="d-flex align-items-center gap-3 mb-3">
+            <span class="kz-rating-big"><?= e(review_format_avg($reviewSummary['avg'])) ?></span>
+            <div>
+                <?php render_stars($reviewSummary['avg']); ?>
+                <div class="text-muted small"><?= $reviewSummary['count'] ?> đánh giá</div>
+            </div>
+        </div>
+    <?php else: ?>
+        <p class="text-muted">Chưa có đánh giá nào cho sản phẩm này.</p>
+    <?php endif; ?>
+
+    <?php if ($reviewState === 'guest'): ?>
+        <p><a href="<?= e($reviewLoginUrl) ?>">Đăng nhập</a> để đánh giá sản phẩm bạn đã mua.</p>
+    <?php elseif ($reviewState === 'not_bought'): ?>
+        <div class="alert alert-light border">Chỉ khách đã mua sản phẩm này và có đơn hàng đã hoàn thành mới đánh giá được.</div>
+    <?php elseif ($reviewState === 'can'): ?>
+        <form method="post" action="<?= e(url('account/review.php')) ?>" class="card card-body mb-4">
+            <?= csrf_field() ?>
+            <input type="hidden" name="product_id" value="<?= (int)$product['id'] ?>">
+            <h3 class="h6"><?= $myReview ? 'Cập nhật đánh giá của bạn' : 'Viết đánh giá của bạn' ?></h3>
+            <?php if ($myReview && (int)$myReview['status'] === 0): ?>
+                <p class="small text-muted mb-2">Đánh giá hiện tại của bạn đang được quản trị viên ẩn.</p>
+            <?php endif; ?>
+            <div class="mb-2">
+                <div class="kz-star-input" role="radiogroup" aria-label="Chọn số sao">
+                    <?php for ($i = 5; $i >= 1; $i--): ?>
+                        <input type="radio" name="rating" id="star<?= $i ?>" value="<?= $i ?>"
+                               <?= ($myReview && (int)$myReview['rating'] === $i) ? 'checked' : '' ?> required>
+                        <label for="star<?= $i ?>" title="<?= $i ?> sao"><i class="bi bi-star-fill"></i><span class="visually-hidden"><?= $i ?> sao</span></label>
+                    <?php endfor; ?>
+                </div>
+            </div>
+            <div class="mb-3">
+                <label class="form-label" for="comment">Bình luận (không bắt buộc)</label>
+                <textarea class="form-control" id="comment" name="comment" rows="3" maxlength="1000"
+                          placeholder="Chia sẻ cảm nhận của bạn về sản phẩm"><?= e($myReview['comment'] ?? '') ?></textarea>
+            </div>
+            <div><button class="btn kz-btn-register" type="submit"><?= $myReview ? 'Cập nhật đánh giá' : 'Gửi đánh giá' ?></button></div>
+        </form>
+    <?php endif; ?>
+
+    <?php foreach ($reviews as $r): ?>
+        <article class="kz-review">
+            <div class="kz-review-meta">
+                <?php render_stars((float)$r['rating']); ?>
+                <strong><?= e(review_mask_name($r['full_name'])) ?></strong>
+                <small class="text-muted"><?= e(date('d/m/Y', strtotime($r['created_at']))) ?></small>
+            </div>
+            <?php if ($r['comment'] !== null && $r['comment'] !== ''): ?>
+                <p class="kz-review-comment"><?= nl2br(e($r['comment'])) ?></p>
+            <?php endif; ?>
+        </article>
+    <?php endforeach; ?>
+</section>
+
+<?php render_recently_viewed(recently_viewed_products($recentIds)); ?>
+
+<?php require __DIR__ . '/includes/footer.php'; ?>

@@ -3,7 +3,36 @@
 
 function current_user(): ?array
 {
-    return $_SESSION['user'] ?? null;
+    static $verified = false;
+    $user = $_SESSION['user'] ?? null;
+    if (!$user) {
+        return null;
+    }
+
+    if (!$verified) {
+        $verified = true;
+        try {
+            $fresh = db_query(
+                'SELECT id, full_name, email, role, status FROM users WHERE id = ?',
+                [(int)$user['id']]
+            )->fetch();
+            if (!$fresh || (int)$fresh['status'] === 0) {
+                unset($_SESSION['user']);
+                return null;
+            }
+            $_SESSION['user'] = [
+                'id'        => (int)$fresh['id'],
+                'full_name' => $fresh['full_name'],
+                'email'     => $fresh['email'],
+                'role'      => $fresh['role'],
+            ];
+            $user = $_SESSION['user'];
+        } catch (Throwable $e) {
+            // Bỏ qua khi chạy ở môi trường chưa kết nối được CSDL.
+        }
+    }
+
+    return $user;
 }
 
 function is_logged_in(): bool
@@ -16,10 +45,16 @@ function is_admin(): bool
     return (current_user()['role'] ?? '') === 'admin';
 }
 
-/** Chỉ cho phép đường dẫn nội bộ khi chuyển hướng sau đăng nhập (chống open redirect). */
+/** Chỉ cho phép đường dẫn nội bộ khi chuyển hướng sau đăng nhập (chống open redirect & header injection). */
 function safe_redirect_target(?string $target, string $fallback = 'index.php'): string
 {
-    if ($target && $target[0] === '/' && !str_starts_with($target, '//') && !str_contains($target, '\\')) {
+    if ($target
+        && $target[0] === '/'
+        && !str_starts_with($target, '//')
+        && !str_contains($target, '\\')
+        && !str_contains($target, "\r")
+        && !str_contains($target, "\n")
+    ) {
         return $target;
     }
     return $fallback;
@@ -113,8 +148,9 @@ function register_customer(array $in, ?int &$newId = null): array
     if (!filter_var($email, FILTER_VALIDATE_EMAIL) || mb_strlen($email) > 150) {
         $errors[] = 'Email không hợp lệ.';
     }
-    if (strlen($pass) < 6) {
-        $errors[] = 'Mật khẩu tối thiểu 6 ký tự.';
+    // Cùng quy tắc với kiểm tra phía trình duyệt trong assets/js/auth.js.
+    if (strlen($pass) < 8 || !preg_match('/[A-Za-z]/', $pass) || !preg_match('/[0-9]/', $pass)) {
+        $errors[] = 'Mật khẩu tối thiểu 8 ký tự, gồm cả chữ và số.';
     }
     if ($pass !== $pass2) {
         $errors[] = 'Mật khẩu xác nhận không khớp.';
