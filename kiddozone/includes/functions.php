@@ -307,23 +307,6 @@ function cart_remove_item(int $productId): void
     cart_set_item($productId, 0);
 }
 
-function cart_clear(?int $userId = null): void
-{
-    $uid = $userId;
-    if ($uid === null && function_exists('is_logged_in') && is_logged_in() && !is_admin()) {
-        $uid = (int)current_user()['id'];
-    }
-    if ($uid !== null && $uid > 0) {
-        db_query(
-            'DELETE ci FROM cart_items ci
-             JOIN carts c ON c.id = ci.cart_id
-             WHERE c.user_id = ?',
-            [$uid]
-        );
-    }
-    unset($_SESSION['cart']);
-}
-
 /** Gộp giỏ hàng session vào giỏ lưu trong CSDL của khách hàng khi đăng nhập (F19). */
 function merge_session_cart(int $userId): void
 {

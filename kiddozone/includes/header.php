@@ -31,8 +31,8 @@ $megaTones = [
     'bg-mint-100 text-mint-700 dark:bg-mint-500/15 dark:text-mint-300',
     'bg-grape-100 text-grape-600 dark:bg-grape-500/15 dark:text-grape-300',
 ];
-$navCategoryId = ($currentPage === 'products.php' && is_string($_GET['category'] ?? null)) ? (int)$_GET['category'] : 0;
 $navSale       = $currentPage === 'products.php' && ($_GET['sale'] ?? '') === '1';
+$navCatalog    = $currentPage === 'products.php' && !$navSale;
 $navIcons      = ['ph-lightbulb', 'ph-puzzle-piece', 'ph-heart', 'ph-car-profile', 'ph-soccer-ball', 'ph-palette', 'ph-music-notes', 'ph-planet'];
 
 // Giữ lại từ khóa trong ô tìm kiếm khi đang ở trang sản phẩm.
@@ -221,11 +221,11 @@ require __DIR__ . '/head.php';
             $chipOn = 'bg-ink-900 text-white shadow-soft dark:bg-white dark:text-ink-900';
             ?>
             <div class="flex flex-col gap-1 md:flex-row md:items-center md:gap-2">
-                <ul class="no-scrollbar flex flex-col gap-1 overflow-x-auto md:min-w-0 md:flex-1 md:flex-row md:items-center xl:gap-1.5">
+                <ul class="flex flex-col gap-1 md:min-w-0 md:flex-1 md:flex-row md:items-center xl:gap-1.5">
                     <li><a class="<?= $chip ?> <?= $currentPage === 'index.php' ? $chipOn : $chipIdle ?>" href="<?= e(url('index.php')) ?>"><i class="ph-bold ph-house" aria-hidden="true"></i> Trang chủ</a></li>
                     <?php if ($navCategories): ?>
                         <li class="hidden md:block">
-                            <button type="button" x-ref="megaBtn" class="<?= $chip ?> <?= $chipIdle ?>" :class="mega && 'bg-white shadow-soft dark:bg-ink-800'"
+                            <button type="button" x-ref="megaBtn" class="<?= $chip ?> <?= $navCatalog ? $chipOn : $chipIdle ?>"<?= !$navCatalog ? " :class=\"mega && 'bg-white shadow-soft dark:bg-ink-800'\"" : '' ?>
                                     @click="toggleMega($event)" @mouseenter="hoverMega(true)" @mouseleave="hoverMega(false)"
                                     :aria-expanded="mega" aria-controls="kz-mega">
                                 <i class="ph-bold ph-squares-four" aria-hidden="true"></i> Danh mục
@@ -233,13 +233,7 @@ require __DIR__ . '/head.php';
                             </button>
                         </li>
                     <?php endif; ?>
-                    <?php foreach ($navCategories as $i => $c): ?>
-                        <li>
-                            <a class="<?= $chip ?> <?= $navCategoryId === (int)$c['id'] ? $chipOn : $chipIdle ?>" href="<?= e(url('products.php?category=' . (int)$c['id'])) ?>">
-                                <i class="ph-bold <?= e($navIcons[$i % count($navIcons)]) ?>" aria-hidden="true"></i> <?= e($c['name']) ?>
-                            </a>
-                        </li>
-                    <?php endforeach; ?>
+                    <li class="md:hidden"><a class="<?= $chip ?> <?= $navCatalog ? $chipOn : $chipIdle ?>" href="<?= e(url('products.php')) ?>"><i class="ph-bold ph-squares-four" aria-hidden="true"></i> Danh mục</a></li>
                 </ul>
                 <div class="flex flex-col gap-1 md:shrink-0 md:flex-row md:items-center">
                     <a class="<?= $chip ?> <?= $navSale ? 'bg-coral-600 text-white' : 'text-price hover:bg-coral-50 dark:hover:bg-coral-500/10' ?>" href="<?= e(url('products.php?sale=1')) ?>"><i class="ph-fill ph-fire" aria-hidden="true"></i> Khuyến mãi</a>

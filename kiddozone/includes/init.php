@@ -1,6 +1,12 @@
 <?php
 // Nạp ở đầu MỌI trang: require_once __DIR__ . '/includes/init.php';  (trong admin/: __DIR__ . '/../includes/init.php')
+ini_set('default_charset', 'UTF-8');
+if (function_exists('mb_internal_encoding')) {
+    mb_internal_encoding('UTF-8');
+}
+
 if (!headers_sent()) {
+    header('Content-Type: text/html; charset=UTF-8');
     header('X-Content-Type-Options: nosniff');
     header('X-Frame-Options: SAMEORIGIN');
     header('Referrer-Policy: strict-origin-when-cross-origin');

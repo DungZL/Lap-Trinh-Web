@@ -148,7 +148,7 @@ kiddozone/
 ├── assets/            src/app.css (nguồn Tailwind), css/app.css (đã build),
 │                      js/app.js, js/admin.js, js/select.js, img/placeholder.svg (ảnh mặc định), vendor/tinymce/
 ├── uploads/           Ảnh sản phẩm (tự đổi tên & tự nén <= 2MB khi upload, .htaccess chặn chạy PHP)
-└── database/          kiddozone.sql, kiddozone_infinityfree.sql, migrations/ (nâng cấp CSDL đang chạy)
+└── database/          kiddozone.sql, kiddozone_infinityfree.sql (12 bảng + dữ liệu mẫu)
 ```
 
 ### 3.3. Biểu đồ lớp

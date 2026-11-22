@@ -34,9 +34,6 @@ Chọn **một** trong hai cách:
 
 XAMPP/Laragon mặc định tài khoản MySQL là `root`, không mật khẩu. Nếu có mật khẩu hoặc cổng khác, tạo file `includes/config.local.php` từ `includes/config.local.example.php` (file `config.local.php` đã được bỏ qua trong `.gitignore`).
 
-### Bước 3b: Đã có CSDL cũ, không muốn mất dữ liệu?
-Nếu database `kiddozone` đã tạo từ bản cũ (trước khi có giao diện mới) và bạn muốn giữ dữ liệu, chỉ cần import thêm **một lần** file `database/migrations/2026-11-22-redesign.sql`. File này thêm cột độ tuổi, flash sale, bảng mã giảm giá và lịch sử trạng thái đơn.
-
 ### Bước 4: Mở website
 - **Trang khách:** `http://localhost/Lap-Trinh-Web/kiddozone/`
 - **Trang quản trị:** `http://localhost/Lap-Trinh-Web/kiddozone/admin/`
@@ -75,7 +72,7 @@ npm run build      # build bản thu gọn trước khi commit / deploy
 
 ### Cách A: InfinityFree (Shared Hosting PHP + MySQL)
 1. Tạo database MySQL mới trong **Control Panel → MySQL Databases** trên InfinityFree và ghi lại `DB_HOST`, `DB_NAME`, `DB_USER`, `DB_PASS`.
-2. Mở **phpMyAdmin** của hosting → Import file `kiddozone/database/kiddozone.sql` (nếu hosting không cho phép lệnh `CREATE DATABASE`, xóa 2 dòng đầu `CREATE DATABASE ...` và `USE kiddozone;` trước khi import trực tiếp vào DB đã tạo).
+2. Mở **phpMyAdmin** của hosting → chọn database vừa tạo → tab **Import** → chọn file `kiddozone/database/kiddozone_infinityfree.sql` (để **Character set of the file: `utf-8`**) → **Import**. File này đã bỏ lệnh `CREATE DATABASE`/`USE` và ép `utf8mb4` để không bị lỗi tiếng Việt thành dấu `?` trên database mặc định `latin1` của InfinityFree.
 3. Upload toàn bộ nội dung trong thư mục `kiddozone/` lên thư mục `htdocs/` của hosting (FTP / File Manager). Nhớ upload cả file ẩn `.htaccess` (chuyển đường dẫn sai về trang 404) và thư mục `uploads/` (ảnh Admin đã tải lên).
 4. Sao chép `includes/config.local.example.php` thành `includes/config.local.php` trên hosting và điền đúng thông số MySQL vừa tạo; nếu đặt code thẳng vào `htdocs/` của domain chính, đặt `define('BASE_URL_OVERRIDE', '');` (hoặc để `null` tự dò).
 5. Đảm bảo thư mục `uploads/` có quyền ghi (`0755`) và giữ nguyên file `uploads/.htaccess`.
@@ -114,7 +111,7 @@ npm run build      # build bản thu gọn trước khi commit / deploy
 - Thông báo: `flash('success'|'danger'|'warning'|'info', '...')`.
 - Phân trang: `[$offset, $pages, $page] = paginate($total, ITEMS_PER_PAGE_SHOP|ITEMS_PER_PAGE_ADMIN);` và `render_pagination($page, $pages)`.
 - Giá: `format_price($x)`; giá đang bán: `effective_price($product)`.
-- Giỏ hàng: dùng bộ hàm `cart_items()`, `cart_count()`, `cart_set_item()`, `cart_remove_item()`, `cart_clear()`, `merge_session_cart()` trong `includes/functions.php`.
+- Giỏ hàng: dùng bộ hàm `cart_items()`, `cart_count()`, `cart_set_item()`, `cart_remove_item()`, `merge_session_cart()` trong `includes/functions.php`.
 
 ---
 
@@ -133,6 +130,6 @@ kiddozone/
 │                     account_nav, auth_layout, product_card, recently_viewed, wishlist, reviews
 ├── assets/           src/app.css (nguồn Tailwind), css/app.css (đã build), js/, img/placeholder.svg (ảnh mặc định), vendor/tinymce/
 ├── uploads/          Ảnh sản phẩm (tự đổi tên & tự nén <= 2MB khi upload, .htaccess chặn chạy PHP)
-├── database/         kiddozone.sql (12 bảng + dữ liệu mẫu), migrations/
+├── database/         kiddozone.sql, kiddozone_infinityfree.sql (12 bảng + dữ liệu mẫu)
 └── package.json      Lệnh build Tailwind (npm run build / npm run watch)
 ```

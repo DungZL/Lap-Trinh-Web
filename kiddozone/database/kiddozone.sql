@@ -5,6 +5,7 @@
 
 CREATE DATABASE IF NOT EXISTS kiddozone CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 USE kiddozone;
+SET NAMES utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 SET FOREIGN_KEY_CHECKS = 0;
 DROP TABLE IF EXISTS order_status_history, coupons, wishlists, reviews, cart_items, carts, order_items, orders, product_images, products, categories, users;
@@ -20,14 +21,14 @@ CREATE TABLE users (
     role ENUM('admin','customer') NOT NULL DEFAULT 'customer',
     status TINYINT(1) NOT NULL DEFAULT 1 COMMENT '0 = bị khóa',
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
-) ENGINE=InnoDB;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE categories (
     id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(100) NOT NULL,
     description VARCHAR(255) NULL,
     status TINYINT(1) NOT NULL DEFAULT 1
-) ENGINE=InnoDB;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE products (
     id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
@@ -48,7 +49,7 @@ CREATE TABLE products (
     INDEX idx_products_category (category_id),
     FULLTEXT KEY ft_products_name (name),
     CONSTRAINT fk_products_category FOREIGN KEY (category_id) REFERENCES categories(id) ON DELETE RESTRICT
-) ENGINE=InnoDB;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE product_images (
     id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
@@ -56,7 +57,7 @@ CREATE TABLE product_images (
     image_path VARCHAR(255) NOT NULL COMMENT 'tên file ảnh lưu trong uploads/',
     is_main TINYINT(1) NOT NULL DEFAULT 0,
     CONSTRAINT fk_images_product FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE
-) ENGINE=InnoDB;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE orders (
     id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
@@ -75,7 +76,7 @@ CREATE TABLE orders (
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     INDEX idx_orders_user (user_id),
     CONSTRAINT fk_orders_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE RESTRICT
-) ENGINE=InnoDB;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE order_items (
     id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
@@ -86,7 +87,7 @@ CREATE TABLE order_items (
     quantity INT UNSIGNED NOT NULL,
     CONSTRAINT fk_items_order FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE,
     CONSTRAINT fk_items_product FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE SET NULL
-) ENGINE=InnoDB;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE carts (
     id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
@@ -94,7 +95,7 @@ CREATE TABLE carts (
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     CONSTRAINT fk_carts_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
-) ENGINE=InnoDB;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE cart_items (
     id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
@@ -104,7 +105,7 @@ CREATE TABLE cart_items (
     UNIQUE KEY uq_cart_product (cart_id, product_id),
     CONSTRAINT fk_cartitems_cart FOREIGN KEY (cart_id) REFERENCES carts(id) ON DELETE CASCADE,
     CONSTRAINT fk_cartitems_product FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE
-) ENGINE=InnoDB;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE reviews (
     id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
@@ -118,7 +119,7 @@ CREATE TABLE reviews (
     CONSTRAINT chk_rating CHECK (rating BETWEEN 1 AND 5),
     CONSTRAINT fk_reviews_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
     CONSTRAINT fk_reviews_product FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE
-) ENGINE=InnoDB;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE wishlists (
     id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
@@ -128,7 +129,7 @@ CREATE TABLE wishlists (
     UNIQUE KEY uq_wishlist (user_id, product_id),
     CONSTRAINT fk_wishlists_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
     CONSTRAINT fk_wishlists_product FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE
-) ENGINE=InnoDB;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE order_status_history (
     id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
@@ -137,7 +138,7 @@ CREATE TABLE order_status_history (
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     INDEX idx_history_order (order_id),
     CONSTRAINT fk_history_order FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE
-) ENGINE=InnoDB;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE coupons (
     id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
@@ -153,7 +154,7 @@ CREATE TABLE coupons (
     ends_at DATETIME NULL,
     status TINYINT(1) NOT NULL DEFAULT 1,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
-) ENGINE=InnoDB;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ===================== DỮ LIỆU MẪU =====================
 
