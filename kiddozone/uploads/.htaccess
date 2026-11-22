@@ -1,5 +1,10 @@
 # Không cho chạy mã PHP trong thư mục upload (chống upload độc hại)
 <FilesMatch "\.(php|phtml|php[0-9]|phar)$">
-    Require all denied
+    <IfModule mod_authz_core.c>
+        Require all denied
+    </IfModule>
+    <IfModule !mod_authz_core.c>
+        Order deny,allow
+        Deny from all
+    </IfModule>
 </FilesMatch>
-Options -ExecCGI

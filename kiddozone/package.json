@@ -1,0 +1,13 @@
+{
+  "name": "kiddozone",
+  "private": true,
+  "description": "Build Tailwind CSS cho KiddoZone. PHP không cần Node để chạy; chỉ cần khi sửa giao diện.",
+  "scripts": {
+    "build": "tailwindcss -i ./assets/src/app.css -o ./assets/css/app.css --minify",
+    "watch": "tailwindcss -i ./assets/src/app.css -o ./assets/css/app.css --watch"
+  },
+  "devDependencies": {
+    "@tailwindcss/cli": "4.1.11",
+    "tailwindcss": "4.1.11"
+  }
+}
