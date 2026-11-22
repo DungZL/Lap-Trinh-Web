@@ -24,5 +24,14 @@ defined('ITEMS_PER_PAGE_SHOP')  || define('ITEMS_PER_PAGE_SHOP', 12);   // phân
 defined('ITEMS_PER_PAGE_ADMIN') || define('ITEMS_PER_PAGE_ADMIN', 10);  // phân trang trong admin
 defined('UPLOAD_DIR')           || define('UPLOAD_DIR', dirname(__DIR__) . '/uploads/');
 defined('UPLOAD_MAX_BYTES')     || define('UPLOAD_MAX_BYTES', 2 * 1024 * 1024); // 2MB mỗi ảnh
+defined('UPLOAD_RAW_MAX_BYTES') || define('UPLOAD_RAW_MAX_BYTES', 15 * 1024 * 1024); // tối đa 15MB trước khi tự nén về <= 2MB
+
+defined('LOW_STOCK_THRESHOLD')  || define('LOW_STOCK_THRESHOLD', 5);    // cảnh báo sắp hết hàng (dashboard admin)
+
+// Tài khoản nhận chuyển khoản, dùng để sinh mã VietQR (https://vietqr.io). Đổi thành tài khoản thật khi deploy.
+// BANK_ID là mã ngân hàng theo VietQR, ví dụ MB, VCB, TCB, ACB, BIDV, VPB...
+defined('BANK_ID')           || define('BANK_ID', (string)$env('BANK_ID', 'MB'));
+defined('BANK_ACCOUNT_NO')   || define('BANK_ACCOUNT_NO', (string)$env('BANK_ACCOUNT_NO', '0000123456789'));
+defined('BANK_ACCOUNT_NAME') || define('BANK_ACCOUNT_NAME', (string)$env('BANK_ACCOUNT_NAME', 'KIDDOZONE DEMO'));
 
 date_default_timezone_set('Asia/Ho_Chi_Minh');

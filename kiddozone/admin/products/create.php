@@ -35,6 +35,7 @@ if (is_post()) {
         FILTER_VALIDATE_INT
     );
     $featured = isset($_POST['is_featured']) ? 1 : 0;
+    $extra = product_extra_input($_POST, $price === false ? 0 : (int)$price); // độ tuổi, flash sale
 
     $validCategoryIds = array_map(
         'intval',
@@ -55,6 +56,8 @@ if (is_post()) {
         $error = 'Số lượng tồn kho không hợp lệ.';
     } elseif (!in_array($status, [0, 1], true)) {
         $error = 'Trạng thái không hợp lệ.';
+    } elseif ($extra['error'] !== null) {
+        $error = $extra['error'];
     } else {
         $savedFiles = [];
 
@@ -94,8 +97,9 @@ if (is_post()) {
             db_query(
                 'INSERT INTO products
                  (category_id, name, price, sale_price,
-                  stock, description, is_featured, status)
-                 VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+                  stock, description, is_featured, status,
+                  age_min, age_max, flash_sale_price, flash_sale_start, flash_sale_end)
+                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
                 [
                     $categoryId,
                     $name,
@@ -104,7 +108,12 @@ if (is_post()) {
                     $stock,
                     $description,
                     $featured,
-                    $status
+                    $status,
+                    $extra['data']['age_min'],
+                    $extra['data']['age_max'],
+                    $extra['data']['flash_sale_price'],
+                    $extra['data']['flash_sale_start'],
+                    $extra['data']['flash_sale_end'],
                 ]
             );
 
@@ -141,290 +150,25 @@ if (is_post()) {
     }
 }
 
+// Giá trị hiện trên form (giữ lại dữ liệu vừa nhập khi có lỗi).
+$form = [
+    'name'             => (string)($_POST['name'] ?? ''),
+    'category_id'      => (string)($_POST['category_id'] ?? ''),
+    'price'            => (string)($_POST['price'] ?? ''),
+    'sale_price'       => (string)($_POST['sale_price'] ?? ''),
+    'stock'            => (int)($_POST['stock'] ?? 0),
+    'description'      => (string)($_POST['description'] ?? ''),
+    'age_min'          => (int)($_POST['age_min'] ?? 0),
+    'age_max'          => (int)($_POST['age_max'] ?? 12),
+    'flash_sale_price' => ($_POST['flash_sale_price'] ?? '') === '' ? null : (string)$_POST['flash_sale_price'],
+    'flash_sale_start' => parse_datetime_local($_POST['flash_sale_start'] ?? null),
+    'flash_sale_end'   => parse_datetime_local($_POST['flash_sale_end'] ?? null),
+    'status'           => (string)($_POST['status'] ?? '1'),
+    'is_featured'      => isset($_POST['is_featured']),
+];
+$isEdit = false;
+$pageSubtitle = 'Điền thông tin, tải ảnh và lưu để đăng bán';
+
 require __DIR__ . '/../admin_header.php';
-?>
-
-<h2 class="fw-bold mb-4">Thêm sản phẩm mới</h2>
-
-<?php if ($error): ?>
-    <div id="productError" class="alert alert-danger">
-        <?= e($error) ?>
-    </div>
-<?php endif; ?>
-
-<div class="card shadow-sm border-0">
-<div class="card-body">
-<form method="post" enctype="multipart/form-data">
-    <?= csrf_field() ?>
-
-    <div class="mb-3">
-        <label class="form-label">Tên sản phẩm</label>
-        <input type="text" name="name" class="form-control"
-               maxlength="200" value="<?= old('name') ?>" required>
-    </div>
-
-    <div class="mb-3">
-        <label class="form-label">Danh mục</label>
-        <select name="category_id" class="form-select" required>
-            <option value="">-- Chọn danh mục --</option>
-            <?php foreach ($categories as $category): ?>
-                <option value="<?= (int)$category['id'] ?>"
-                    <?= (string)($_POST['category_id'] ?? '') ===
-                        (string)$category['id'] ? 'selected' : '' ?>>
-                    <?= e($category['name']) ?>
-                </option>
-            <?php endforeach; ?>
-        </select>
-    </div>
-
-   
-<div class="row g-3 mb-3">
-
-    <!-- Giá bán -->
-    <div class="col-md-4">
-        <label for="priceDisplay" class="form-label">
-            Giá bán (VNĐ)
-        </label>
-
-        <input
-            type="text"
-            id="priceDisplay"
-            class="form-control money-input"
-            inputmode="numeric"
-            placeholder="VD: 250.000"
-            value="<?= e(($_POST['price'] ?? '') === '' ? '' : number_format((int)preg_replace('/\D/', '', (string)$_POST['price']), 0, ',', '.')) ?>"
-            required
-        >
-
-        <input
-            type="hidden"
-            id="price"
-            name="price"
-            value="<?= e(preg_replace('/\D/', '', (string)($_POST['price'] ?? ''))) ?>"
-        >
-    </div>
-
-    <!-- Giá khuyến mãi -->
-    <div class="col-md-4">
-        <label for="salePriceDisplay" class="form-label">
-            Giá khuyến mãi
-        </label>
-
-        <input
-            type="text"
-            id="salePriceDisplay"
-            class="form-control money-input"
-            inputmode="numeric"
-            placeholder="VD: 190.000"
-            value="<?= e(($_POST['sale_price'] ?? '') === '' ? '' : number_format((int)preg_replace('/\D/', '', (string)$_POST['sale_price']), 0, ',', '.')) ?>"
-        >
-
-        <input
-            type="hidden"
-            id="salePrice"
-            name="sale_price"
-            value="<?= e(preg_replace('/\D/', '', (string)($_POST['sale_price'] ?? ''))) ?>"
-        >
-    </div>
-
-    <!-- Tồn kho -->
-    <div class="col-md-4">
-        <label for="stock" class="form-label">
-            Tồn kho
-        </label>
-
-        <input
-            type="number"
-            id="stock"
-            name="stock"
-            min="0"
-            class="form-control"
-            value="<?= e($_POST['stock'] ?? '0') ?>"
-            required
-        >
-    </div>
-
-</div>
-
-
-    <div class="mb-3">
-        <label class="form-label">Mô tả sản phẩm</label>
-        <textarea id="description" name="description"
-                  class="form-control" rows="8"><?= old('description') ?></textarea>
-    </div>
-
-    
-<div class="mb-4">
-    <label class="form-label fw-bold">Hình ảnh sản phẩm</label>
-
-    <div id="uploadZone" class="product-upload-zone">
-        <div class="fs-1">📷</div>
-        <strong>Kéo thả ảnh vào đây</strong>
-        <p class="text-muted mb-0">
-            Hoặc nhấn để chọn ảnh từ máy
-        </p>
-        <small>JPG, PNG, WEBP - Tối đa 10 ảnh, 2MB/ảnh</small>
-    </div>
-
-  
-<input
-    type="file"
-    id="productImages"
-    name="images[]"
-    accept="image/jpeg,image/png,image/webp"
-    multiple
-    hidden
->
-
-
-<div id="imagePreview"
-     class="product-preview-grid"
-     style="display:grid !important;
-            grid-template-columns:repeat(3,minmax(0,1fr)) !important;
-            gap:12px !important;
-            width:100%;">
-</div>
-    <small id="imageCount" class="text-muted">
-        Đã chọn 0/10 ảnh
-    </small>
-</div>
-
-
-    <div class="mb-3">
-        <label class="form-label">Trạng thái</label>
-        <select name="status" class="form-select">
-            <option value="1">Hiển thị</option>
-            <option value="0"
-                <?= ($_POST['status'] ?? '') === '0' ? 'selected' : '' ?>>
-                Ẩn
-            </option>
-        </select>
-    </div>
-
-    <div class="form-check mb-3">
-        <input type="checkbox" name="is_featured" value="1"
-               class="form-check-input" id="featured"
-               <?= isset($_POST['is_featured']) ? 'checked' : '' ?>>
-        <label class="form-check-label" for="featured">
-            Sản phẩm nổi bật
-        </label>
-    </div>
-
-    <button type="submit" class="btn btn-primary">
-        <i class="bi bi-save"></i> Lưu sản phẩm
-    </button>
-
-    <a href="index.php" class="btn btn-secondary">
-        Quay lại
-    </a>
-</form>
-</div>
-</div>
-
-<!-- TinyMCE Editor -->
-<script src="<?= e(url('assets/vendor/tinymce/tinymce.min.js')) ?>"></script>
-
-<script>
-tinymce.init({
-    selector: '#description',
-    height: 400,
-    menubar: false,
-    plugins: 'lists link table code wordcount',
-    toolbar: 'undo redo | blocks | bold italic underline | alignleft aligncenter alignright | bullist numlist | link table | code',
-    branding: false,
-    promotion: false,
-    license_key: 'gpl'
-});
-</script>
-<script src="<?= e(url('assets/js/product-upload.js')) ?>?v=6"></script>
-
-<script>
-document.addEventListener('DOMContentLoaded', function () {
-    function setupMoneyInput(displayId, hiddenId) {
-        const display = document.getElementById(displayId);
-        const hidden = document.getElementById(hiddenId);
-
-        if (!display || !hidden) return;
-
-        display.addEventListener('input', function () {
-            const digits = display.value.replace(/\D/g, '');
-
-            hidden.value = digits;
-
-            display.value = digits
-                ? digits.replace(/\B(?=(\d{3})+(?!\d))/g, '.')
-                : '';
-        });
-    }
-
-    setupMoneyInput('priceDisplay', 'price');
-    setupMoneyInput('salePriceDisplay', 'salePrice');
-});
-</script>
-
-<script>
-document.addEventListener('DOMContentLoaded', function () {
-    const form = document.querySelector(
-        'form[enctype="multipart/form-data"]'
-    );
-
-    if (!form) return;
-
-    form.addEventListener('submit', function (event) {
-        // Đồng bộ TinyMCE về textarea
-        if (window.tinymce) {
-            tinymce.triggerSave();
-        }
-
-        const price = document.getElementById('price');
-        const salePrice = document.getElementById('salePrice');
-
-        if (!price || !salePrice) return;
-
-        const priceValue = Number(price.value);
-        const saleValue = salePrice.value === ''
-            ? null
-            : Number(salePrice.value);
-
-        let error = '';
-
-        if (price.value === '' ||
-            !Number.isSafeInteger(priceValue) ||
-            priceValue < 0) {
-            error = 'Giá bán không hợp lệ.';
-        } else if (
-            saleValue !== null &&
-            (!Number.isSafeInteger(saleValue) ||
-             saleValue < 0 ||
-             saleValue > priceValue)
-        ) {
-            error = 'Giá khuyến mãi không được lớn hơn giá bán.';
-        }
-
-        if (error) {
-            event.preventDefault();
-            alert(error);
-        }
-    });
-});
-</script>
-
-<script>
-document.addEventListener('DOMContentLoaded', function () {
-    const errorBox = document.getElementById('productError');
-
-    if (!errorBox) return;
-
-    const fields = document.querySelectorAll(
-        '#priceDisplay, #salePriceDisplay'
-    );
-
-    fields.forEach(field => {
-        field.addEventListener('input', function () {
-            errorBox.style.display = 'none';
-        });
-    });
-});
-</script>
-
-<?php require __DIR__ . '/../admin_footer.php'; ?>
+require __DIR__ . '/_form.php';
+require __DIR__ . '/../admin_footer.php';

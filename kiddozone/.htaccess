@@ -1,0 +1,8 @@
+# Trang 404 thân thiện: đường dẫn không trỏ tới file / thư mục có thật thì hiện 404.php
+# (404.php tự trả mã HTTP 404). Chạy được cả ở thư mục con (localhost) lẫn root domain (InfinityFree).
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteRule ^ 404.php [L]
+</IfModule>

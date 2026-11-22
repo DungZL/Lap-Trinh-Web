@@ -7,7 +7,7 @@ CREATE DATABASE IF NOT EXISTS kiddozone CHARACTER SET utf8mb4 COLLATE utf8mb4_un
 USE kiddozone;
 
 SET FOREIGN_KEY_CHECKS = 0;
-DROP TABLE IF EXISTS wishlists, reviews, cart_items, carts, order_items, orders, product_images, products, categories, users;
+DROP TABLE IF EXISTS order_status_history, coupons, wishlists, reviews, cart_items, carts, order_items, orders, product_images, products, categories, users;
 SET FOREIGN_KEY_CHECKS = 1;
 
 CREATE TABLE users (
@@ -35,7 +35,12 @@ CREATE TABLE products (
     name VARCHAR(200) NOT NULL,
     price DECIMAL(12,0) NOT NULL,
     sale_price DECIMAL(12,0) NULL,
+    flash_sale_price DECIMAL(12,0) NULL COMMENT 'giá flash sale',
+    flash_sale_start DATETIME NULL,
+    flash_sale_end DATETIME NULL,
     stock INT UNSIGNED NOT NULL DEFAULT 0,
+    age_min TINYINT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'tuổi nhỏ nhất phù hợp',
+    age_max TINYINT UNSIGNED NOT NULL DEFAULT 12 COMMENT 'tuổi lớn nhất phù hợp',
     description MEDIUMTEXT NULL COMMENT 'HTML từ TinyMCE',
     is_featured TINYINT(1) NOT NULL DEFAULT 0,
     status TINYINT(1) NOT NULL DEFAULT 1 COMMENT '0 = ẩn',
@@ -48,7 +53,7 @@ CREATE TABLE products (
 CREATE TABLE product_images (
     id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     product_id INT UNSIGNED NOT NULL,
-    image_path VARCHAR(255) NOT NULL COMMENT 'tên file trong uploads/, hoặc đường dẫn assets/... cho ảnh mẫu',
+    image_path VARCHAR(255) NOT NULL COMMENT 'tên file ảnh lưu trong uploads/',
     is_main TINYINT(1) NOT NULL DEFAULT 0,
     CONSTRAINT fk_images_product FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE
 ) ENGINE=InnoDB;
@@ -62,8 +67,11 @@ CREATE TABLE orders (
     shipping_address VARCHAR(255) NOT NULL,
     note VARCHAR(500) NULL,
     payment_method ENUM('cod','bank_transfer') NOT NULL DEFAULT 'cod',
-    total_amount DECIMAL(12,0) NOT NULL,
+    coupon_code VARCHAR(30) NULL,
+    discount_amount DECIMAL(12,0) NOT NULL DEFAULT 0,
+    total_amount DECIMAL(12,0) NOT NULL COMMENT 'số tiền phải trả (đã trừ giảm giá)',
     status ENUM('pending','confirmed','shipping','completed','cancelled') NOT NULL DEFAULT 'pending',
+    admin_seen TINYINT(1) NOT NULL DEFAULT 0 COMMENT '0 = đơn mới Admin chưa xem',
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     INDEX idx_orders_user (user_id),
     CONSTRAINT fk_orders_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE RESTRICT
@@ -122,6 +130,31 @@ CREATE TABLE wishlists (
     CONSTRAINT fk_wishlists_product FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE
 ) ENGINE=InnoDB;
 
+CREATE TABLE order_status_history (
+    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    order_id INT UNSIGNED NOT NULL,
+    status ENUM('pending','confirmed','shipping','completed','cancelled') NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    INDEX idx_history_order (order_id),
+    CONSTRAINT fk_history_order FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+CREATE TABLE coupons (
+    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    code VARCHAR(30) NOT NULL UNIQUE,
+    description VARCHAR(255) NULL,
+    type ENUM('percent','fixed') NOT NULL DEFAULT 'percent',
+    value DECIMAL(12,0) NOT NULL COMMENT 'phần trăm (1-100) hoặc số tiền',
+    min_order DECIMAL(12,0) NOT NULL DEFAULT 0,
+    max_discount DECIMAL(12,0) NULL COMMENT 'giảm tối đa (chỉ dùng với percent)',
+    usage_limit INT UNSIGNED NULL COMMENT 'NULL = không giới hạn',
+    used_count INT UNSIGNED NOT NULL DEFAULT 0,
+    starts_at DATETIME NULL,
+    ends_at DATETIME NULL,
+    status TINYINT(1) NOT NULL DEFAULT 1,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB;
+
 -- ===================== DỮ LIỆU MẪU =====================
 
 INSERT INTO users (id, full_name, email, password, phone, address, role, status) VALUES
@@ -159,9 +192,47 @@ INSERT INTO products (id, category_id, name, price, sale_price, stock, descripti
 (19, 5, 'Bộ ném vòng',                        85000, NULL,   55, '<p>Trò chơi ném vòng trong nhà và ngoài trời.</p>', 0),
 (20, 5, 'Dây nhảy trẻ em',                    45000, NULL,   80, '<p>Dây nhảy có tay cầm chống trượt.</p>', 0);
 
--- Mỗi sản phẩm mẫu có 1 ảnh đại diện là placeholder (thay bằng ảnh thật khi Admin upload).
-INSERT INTO product_images (product_id, image_path, is_main)
-SELECT id, 'assets/img/placeholder.svg', 1 FROM products;
+-- Độ tuổi phù hợp của từng sản phẩm (dùng cho bộ lọc tuổi và trợ lý chọn quà).
+UPDATE products SET age_min = 1, age_max = 4  WHERE id IN (1, 2, 11);
+UPDATE products SET age_min = 3, age_max = 8  WHERE id IN (4, 6, 8, 9, 19);
+UPDATE products SET age_min = 6, age_max = 12 WHERE id IN (3, 5, 7, 13, 16);
+UPDATE products SET age_min = 3, age_max = 10 WHERE id IN (10, 12, 15, 17);
+UPDATE products SET age_min = 4, age_max = 12 WHERE id IN (14, 18, 20);
+
+-- Flash sale mẫu: đang diễn ra trong 3 ngày tới tính từ lúc import.
+UPDATE products SET flash_sale_price = 99000,  flash_sale_start = NOW() - INTERVAL 1 HOUR, flash_sale_end = NOW() + INTERVAL 3 DAY WHERE id = 3;
+UPDATE products SET flash_sale_price = 259000, flash_sale_start = NOW() - INTERVAL 1 HOUR, flash_sale_end = NOW() + INTERVAL 3 DAY WHERE id = 5;
+UPDATE products SET flash_sale_price = 199000, flash_sale_start = NOW() - INTERVAL 1 HOUR, flash_sale_end = NOW() + INTERVAL 3 DAY WHERE id = 7;
+UPDATE products SET flash_sale_price = 249000, flash_sale_start = NOW() - INTERVAL 1 HOUR, flash_sale_end = NOW() + INTERVAL 3 DAY WHERE id = 13;
+
+-- Mã giảm giá mẫu
+INSERT INTO coupons (code, description, type, value, min_order, max_discount, usage_limit, starts_at, ends_at) VALUES
+('KIDDO10', 'Giảm 10% tối đa 50.000đ cho đơn từ 200.000đ', 'percent', 10, 200000, 50000, NULL, NULL, NULL),
+('CHAOBE50', 'Giảm 50.000đ cho đơn từ 500.000đ', 'fixed', 50000, 500000, NULL, 100, NULL, NULL),
+('FLASH20', 'Giảm 20% tối đa 80.000đ, chỉ 20 lượt', 'percent', 20, 0, 80000, 20, NULL, NULL);
+
+-- Ảnh sản phẩm mẫu lưu trong thư mục uploads/ (sản phẩm chưa có ảnh sẽ dùng 1 ảnh mặc định assets/img/placeholder.svg).
+INSERT INTO product_images (product_id, image_path, is_main) VALUES
+(1,  'e1d6140df99e6d0f05707c629ab4f776.jpg', 1),
+(2,  '44a53546f729017f335ef9d76e4d0f64.jpg', 1),
+(3,  '3014695397aa4201833c1c530ed35b0f.webp', 1),
+(4,  '142fba2acd7f9d31fd5b1762b4fd6f97.jpg', 1),
+(5,  '7f45891c96769813f24c4ff6f88e0d8d.png', 1),
+(6,  '3611296b1b86cab0ae19a4492a94ff93.jpg', 1),
+(7,  '6d57a564f85ba4be97386758ae4c6350.jpg', 1),
+(8,  'b5b08f2bd88cce030626d80ee4e98b73.jpg', 1),
+(9,  '2d2fec73ea4373394d7063e70e1694e9.jpg', 1),
+(10, '9132b9a074eb2e36a83e9987f854b950.jpg', 1),
+(11, 'd60de4ada3eb205abea6ed32f4e76d0e.jpg', 1),
+(12, '91e7bc873a7ad3c90d950b9ec3bee8ae.jpg', 1),
+(13, 'c80a732f9f3818539f7a1ceb8fff2210.jpg', 1),
+(14, '09fab26208a817032029cd51f7ed56d9.webp', 1),
+(15, '39047e48188520838c28a971e767be47.jpg', 1),
+(16, 'abf7e308931450ea472e51b148c32a3f.jpg', 1),
+(17, '53d1896c483dfae964131e6ec226999f.jpg', 1),
+(18, 'd9aad7aadca2ca457111c95270e9aa3c.jpg', 1),
+(19, '1f95fbe1e8bf115f7446a513818f0dcd.jpg', 1),
+(20, 'c996ad6c45f84cfd79499bd677bb14b3.jpg', 1);
 
 INSERT INTO orders (id, code, user_id, receiver_name, receiver_phone, shipping_address, note, payment_method, total_amount, status, created_at) VALUES
 (1,  'DH0001', 2, 'Nguyễn Văn An',  '0911111111', '12 Lê Lợi, Q.1, TP. HCM',        NULL,              'cod',           270000, 'completed', '2026-10-01 09:15:00'),
@@ -189,6 +260,21 @@ INSERT INTO order_items (order_id, product_id, product_name, price, quantity) VA
 (8, 20, 'Dây nhảy trẻ em',               45000, 2),
 (9, 7,  'Robot lắp ráp biến hình',      275000, 1),
 (10, 12,'Nhà búp bê mini',              399000, 1);
+
+-- Đơn mẫu coi như Admin đã xem (trừ 2 đơn chờ xác nhận mới nhất để thử chuông thông báo).
+UPDATE orders SET admin_seen = 1 WHERE id NOT IN (8, 10);
+
+-- Dòng thời gian trạng thái cho đơn mẫu.
+INSERT INTO order_status_history (order_id, status, created_at)
+SELECT id, 'pending', created_at FROM orders;
+INSERT INTO order_status_history (order_id, status, created_at)
+SELECT id, 'confirmed', created_at + INTERVAL 3 HOUR FROM orders WHERE status IN ('confirmed', 'shipping', 'completed');
+INSERT INTO order_status_history (order_id, status, created_at)
+SELECT id, 'shipping', created_at + INTERVAL 1 DAY FROM orders WHERE status IN ('shipping', 'completed');
+INSERT INTO order_status_history (order_id, status, created_at)
+SELECT id, 'completed', created_at + INTERVAL 3 DAY FROM orders WHERE status = 'completed';
+INSERT INTO order_status_history (order_id, status, created_at)
+SELECT id, 'cancelled', created_at + INTERVAL 2 HOUR FROM orders WHERE status = 'cancelled';
 
 -- Đánh giá chỉ cho sản phẩm thuộc đơn đã hoàn thành.
 INSERT INTO reviews (user_id, product_id, rating, comment, status) VALUES

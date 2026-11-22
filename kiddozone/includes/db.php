@@ -10,6 +10,8 @@ function db(): PDO
             PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
             PDO::ATTR_EMULATE_PREPARES   => false,
         ]);
+        // Đồng bộ giờ MySQL với PHP (Asia/Ho_Chi_Minh) để NOW() khớp khi so thời gian flash sale, mã giảm giá.
+        $pdo->exec("SET time_zone = '+07:00'");
     }
     return $pdo;
 }

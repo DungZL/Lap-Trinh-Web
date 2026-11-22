@@ -1,0 +1,407 @@
+/*
+ * KiddoZone - nguồn Tailwind CSS v4.
+ * Build:  npm run build   (ra assets/css/app.css, file này mới là file được nạp trên web)
+ * Sửa giao diện khi đang code: npm run watch
+ */
+@import "tailwindcss";
+
+/* Quét class trong mọi file PHP/JS của dự án, bỏ qua thư viện có sẵn. */
+@source "../../**/*.php";
+@source "../js/**/*.js";
+@source not "../vendor";
+@source not "../../node_modules";
+
+/* Chế độ tối bật bằng class .dark trên thẻ <html> (xem includes/head.php). */
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+    --font-sans: "Nunito", ui-sans-serif, system-ui, sans-serif;
+    --font-display: "Baloo 2", "Nunito", ui-sans-serif, sans-serif;
+
+    /* Bảng màu "hộp kẹo" cho shop đồ chơi */
+    --color-sun-50: #fffbeb;
+    --color-sun-100: #fff3c4;
+    --color-sun-200: #ffe58a;
+    --color-sun-300: #ffd45c;
+    --color-sun-400: #ffc93c;
+    --color-sun-500: #f5b301;
+    --color-sun-600: #d08f00;
+    --color-sun-700: #a36d04;
+    --color-sun-800: #7a5200;
+
+    --color-sky-50: #eef6ff;
+    --color-sky-100: #d9eaff;
+    --color-sky-200: #b5d5ff;
+    --color-sky-300: #84b8ff;
+    --color-sky-400: #4f93fb;
+    --color-sky-500: #2f75ee;
+    --color-sky-600: #1f5ed6;
+    --color-sky-700: #1c4bab;
+    --color-sky-800: #163c8a;
+
+    --color-coral-50: #fff1f1;
+    --color-coral-100: #ffe0e0;
+    --color-coral-200: #ffc2c2;
+    --color-coral-300: #ff9797;
+    --color-coral-400: #ff6b6b;
+    --color-coral-500: #f04848;
+    --color-coral-600: #d42f35;
+    --color-coral-700: #a81f26;
+
+    --color-mint-50: #ecfdf6;
+    --color-mint-100: #d1fae9;
+    --color-mint-200: #a4f2d4;
+    --color-mint-300: #67e3b8;
+    --color-mint-400: #2ecc9a;
+    --color-mint-500: #0f9a72;
+    --color-mint-600: #0b8b68;
+    --color-mint-700: #06664c;
+
+    --color-grape-50: #f5f2ff;
+    --color-grape-100: #ece6ff;
+    --color-grape-200: #d9cfff;
+    --color-grape-300: #bba8ff;
+    --color-grape-400: #9b7bff;
+    --color-grape-500: #7c4dff;
+    --color-grape-600: #6533e6;
+
+    --color-ink-50: #f5f7fb;
+    --color-ink-100: #e8ecf4;
+    --color-ink-200: #cfd6e4;
+    --color-ink-300: #a6b1c7;
+    --color-ink-400: #75839f;
+    --color-ink-500: #536180;
+    --color-ink-600: #3b4865;
+    --color-ink-700: #2a3550;
+    --color-ink-800: #1c2540;
+    --color-ink-900: #121a30;
+    --color-ink-950: #0b1022;
+
+    --color-cream: #fff8e7;
+
+    --radius-4xl: 2rem;
+    --radius-5xl: 2.5rem;
+
+    --shadow-soft: 0 10px 30px -12px rgb(28 37 64 / 0.18);
+    --shadow-pop: 0 18px 40px -16px rgb(47 117 238 / 0.45);
+    --shadow-chunky: 0 5px 0 0 rgb(28 37 64 / 0.9);
+
+    --animate-float: float 6s ease-in-out infinite;
+    --animate-wiggle: wiggle 0.6s ease-in-out;
+    --animate-marquee: marquee 28s linear infinite;
+    --animate-pop: pop 0.45s cubic-bezier(.34, 1.56, .64, 1);
+    --animate-shimmer: shimmer 1.4s linear infinite;
+
+    @keyframes float {
+        0%, 100% { transform: translateY(0) rotate(var(--r, 0deg)); }
+        50% { transform: translateY(-14px) rotate(calc(var(--r, 0deg) + 4deg)); }
+    }
+    @keyframes wiggle {
+        0%, 100% { transform: rotate(0); }
+        25% { transform: rotate(-12deg); }
+        75% { transform: rotate(12deg); }
+    }
+    @keyframes marquee {
+        from { transform: translateX(0); }
+        to { transform: translateX(-50%); }
+    }
+    @keyframes pop {
+        0% { transform: scale(.6); opacity: 0; }
+        100% { transform: scale(1); opacity: 1; }
+    }
+    @keyframes shimmer {
+        from { background-position: -200% 0; }
+        to { background-position: 200% 0; }
+    }
+}
+
+/* ---------- Nền tảng ---------- */
+@layer base {
+    html { scroll-behavior: smooth; -webkit-tap-highlight-color: transparent; }
+    body {
+        overflow-x: clip;
+        @apply bg-cream text-ink-800 font-sans antialiased;
+        @apply dark:bg-ink-950 dark:text-ink-100;
+    }
+    h1, h2, h3, h4 { @apply font-display; text-wrap: balance; }
+    p { text-wrap: pretty; }
+    html { scrollbar-color: var(--color-ink-300) transparent; caret-color: var(--color-sky-500); }
+    html.dark { scrollbar-color: var(--color-ink-700) transparent; }
+    /* Input ẩn (sr-only) trong label tùy biến: vẽ viền focus lên label để người dùng bàn phím thấy. */
+    label:has(input.sr-only:focus-visible) { outline: 3px solid var(--color-sky-400); outline-offset: 2px; }
+    [x-cloak] { display: none !important; }
+    ::selection { @apply bg-sun-300 text-ink-900; }
+    :focus-visible { @apply outline-3 outline-offset-2 outline-sky-400; }
+
+    /* Giảm chuyển động: dừng các animation lặp và chuyển động dịch chuyển,
+       nhưng giữ đổi màu / độ mờ để vẫn có phản hồi khi rê chuột, bấm, focus. */
+    @media (prefers-reduced-motion: reduce) {
+        *, *::before, *::after {
+            animation-duration: .01ms !important;
+            animation-iteration-count: 1 !important;
+            scroll-behavior: auto !important;
+            transition-property: color, background-color, border-color, outline-color, opacity, box-shadow !important;
+        }
+    }
+}
+
+/* ---------- Thành phần dùng chung ---------- */
+@layer components {
+    /* Nút "kẹo dẻo": có gờ dưới, bấm thì lún xuống */
+    .btn {
+        @apply relative inline-flex items-center justify-center gap-2 rounded-full px-5 py-2.5
+               font-bold text-sm leading-none whitespace-nowrap select-none cursor-pointer
+               transition-all duration-150 ease-out
+               disabled:opacity-50 disabled:cursor-not-allowed disabled:translate-y-0;
+    }
+    .btn-lg { @apply px-7 py-3.5 text-base; }
+    .btn-sm { @apply px-3.5 py-2 text-xs; }
+    .btn-icon { @apply p-0 size-10; }
+
+    .btn-primary {
+        @apply bg-sky-600 text-white shadow-[0_4px_0_0_var(--color-sky-800)]
+               hover:bg-sky-700 hover:-translate-y-0.5 hover:shadow-[0_6px_0_0_var(--color-sky-800)]
+               active:translate-y-1 active:shadow-[0_0_0_0_var(--color-sky-800)];
+    }
+    .btn-sun {
+        @apply bg-sun-400 text-ink-900 shadow-[0_4px_0_0_var(--color-sun-600)]
+               hover:bg-sun-300 hover:-translate-y-0.5 hover:shadow-[0_6px_0_0_var(--color-sun-600)]
+               active:translate-y-1 active:shadow-none;
+    }
+    .btn-coral {
+        @apply bg-coral-600 text-white shadow-[0_4px_0_0_var(--color-coral-700)]
+               hover:bg-coral-500 hover:-translate-y-0.5 hover:shadow-[0_6px_0_0_var(--color-coral-700)]
+               active:translate-y-1 active:shadow-none;
+    }
+    .btn-mint {
+        @apply bg-mint-400 text-ink-900 shadow-[0_4px_0_0_var(--color-mint-600)]
+               hover:bg-mint-300 hover:-translate-y-0.5 hover:shadow-[0_6px_0_0_var(--color-mint-600)]
+               active:translate-y-1 active:shadow-none;
+    }
+    .btn-ghost {
+        @apply bg-white text-ink-700 ring-2 ring-ink-100 hover:ring-sky-300 hover:text-sky-600
+               dark:bg-ink-800 dark:text-ink-100 dark:ring-ink-700 dark:hover:ring-sky-500 dark:hover:text-sky-300;
+    }
+    .btn-danger-ghost {
+        @apply bg-white text-coral-600 ring-2 ring-coral-100 hover:bg-coral-50 hover:ring-coral-300
+               dark:bg-ink-800 dark:ring-coral-500/30 dark:hover:bg-coral-500/10;
+    }
+
+    .card {
+        @apply rounded-3xl bg-white shadow-soft ring-1 ring-ink-100/70
+               dark:bg-ink-900 dark:ring-ink-800 dark:shadow-none;
+    }
+
+    .label { @apply mb-1.5 block text-sm font-bold text-ink-700 dark:text-ink-200; }
+    .input, .select, .textarea {
+        @apply block w-full rounded-2xl border-2 border-ink-100 bg-white px-4 py-2.5 text-ink-800
+               placeholder:text-ink-500 transition
+               focus:border-sky-400 focus:outline-none focus:ring-4 focus:ring-sky-100
+               disabled:bg-ink-50 disabled:text-ink-400
+               dark:border-ink-700 dark:bg-ink-800 dark:text-ink-100 dark:placeholder:text-ink-300
+               dark:focus:border-sky-500 dark:focus:ring-sky-500/20 dark:disabled:bg-ink-900;
+    }
+    .select { @apply appearance-none bg-no-repeat pr-10; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='%2375839f'%3E%3Cpath fill-rule='evenodd' d='M5.23 7.21a.75.75 0 011.06.02L10 11.17l3.71-3.94a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z'/%3E%3C/svg%3E"); background-position: right .9rem center; background-size: 1.1rem; }
+
+    /* Dropdown tùy biến nâng cấp cho thẻ <select class="select"> (assets/js/select.js) */
+    .kz-select { @apply relative block w-full; }
+    .kz-select.kz-select-auto { @apply inline-block w-auto; }
+    .kz-select-native { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; pointer-events: none; margin: 0; }
+    .kz-select-btn {
+        @apply flex w-full cursor-pointer items-center gap-2 rounded-2xl border-2 border-ink-100 bg-white px-3.5 py-2.5
+               text-left text-sm font-bold text-ink-800 transition
+               hover:border-sky-300 focus-visible:border-sky-400 focus-visible:ring-4 focus-visible:ring-sky-100 focus-visible:outline-none
+               disabled:cursor-not-allowed disabled:bg-ink-50 disabled:text-ink-400
+               dark:border-ink-700 dark:bg-ink-800 dark:text-ink-100 dark:hover:border-sky-500/60 dark:focus-visible:border-sky-500 dark:focus-visible:ring-sky-500/20;
+    }
+    .kz-select-btn.is-pill { @apply rounded-full py-2 pr-3.5 pl-4; }
+    .kz-select.is-open .kz-select-btn { @apply border-sky-400 ring-4 ring-sky-100 dark:border-sky-500 dark:ring-sky-500/20; }
+    .kz-select-icon { @apply shrink-0 text-base text-sky-600 dark:text-sky-300; }
+    .kz-select-label { @apply min-w-0 flex-1 truncate; }
+    .kz-select-caret { @apply ml-1 shrink-0 text-xs text-ink-500 transition-transform duration-200 dark:text-ink-300; }
+    .kz-select.is-open .kz-select-caret { transform: rotate(180deg); }
+    .kz-select-menu {
+        @apply pointer-events-none invisible absolute top-full left-0 z-50 mt-2 max-h-72 min-w-full w-max max-w-[min(20rem,calc(100vw-2rem))]
+               origin-top scale-95 -translate-y-1 overflow-y-auto rounded-3xl bg-white p-1.5 opacity-0 shadow-2xl ring-1 ring-ink-100
+               transition duration-150 ease-out dark:bg-ink-900 dark:ring-ink-700;
+        scrollbar-width: thin;
+    }
+    .kz-select-menu.is-up { @apply top-auto bottom-full mt-0 mb-2 origin-bottom translate-y-1; }
+    .kz-select-menu.is-right { @apply right-0 left-auto; }
+    .kz-select.is-open .kz-select-menu { @apply pointer-events-auto visible translate-y-0 scale-100 opacity-100; }
+    .kz-select-opt {
+        @apply flex w-full cursor-pointer items-center gap-2.5 rounded-2xl px-3 py-2 text-left text-sm font-bold text-ink-700 transition
+               hover:bg-sky-50 hover:text-sky-700 dark:text-ink-200 dark:hover:bg-ink-800 dark:hover:text-sky-300;
+    }
+    .kz-select-opt.is-focused { @apply bg-sky-50 text-sky-700 dark:bg-ink-800 dark:text-sky-300; }
+    .kz-select-opt[aria-selected="true"] { @apply bg-sky-50 text-sky-700 dark:bg-sky-500/15 dark:text-sky-300; }
+    .kz-select-check { @apply ml-auto shrink-0 text-base text-sky-600 opacity-0 transition dark:text-sky-300; }
+    .kz-select-opt[aria-selected="true"] .kz-select-check { @apply opacity-100; }
+    .checkbox, .radio {
+        @apply size-5 cursor-pointer border-2 border-ink-200 accent-sky-500 dark:border-ink-600;
+    }
+    .help { @apply mt-1 text-xs text-ink-500 dark:text-ink-300; }
+
+    .badge {
+        @apply inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-bold leading-none whitespace-nowrap;
+    }
+    .badge-sun { @apply bg-sun-100 text-sun-800 dark:bg-sun-500/15 dark:text-sun-300; }
+    .badge-sky { @apply bg-sky-100 text-sky-700 dark:bg-sky-500/15 dark:text-sky-300; }
+    .badge-mint { @apply bg-mint-100 text-mint-700 dark:bg-mint-500/15 dark:text-mint-300; }
+    .badge-coral { @apply bg-coral-100 text-coral-700 dark:bg-coral-500/15 dark:text-coral-300; }
+    .badge-grape { @apply bg-grape-100 text-grape-600 dark:bg-grape-500/15 dark:text-grape-300; }
+    .badge-ink { @apply bg-ink-100 text-ink-500 dark:bg-ink-800 dark:text-ink-300; }
+
+    .alert {
+        @apply flex items-start gap-3 rounded-2xl px-4 py-3 text-sm font-semibold ring-1;
+    }
+    .alert-success { @apply bg-mint-50 text-mint-700 ring-mint-200 dark:bg-mint-500/10 dark:text-mint-300 dark:ring-mint-500/30; }
+    .alert-danger { @apply bg-coral-50 text-coral-700 ring-coral-200 dark:bg-coral-500/10 dark:text-coral-300 dark:ring-coral-500/30; }
+    .alert-warning { @apply bg-sun-50 text-sun-800 ring-sun-200 dark:bg-sun-500/10 dark:text-sun-300 dark:ring-sun-500/30; }
+    .alert-info { @apply bg-sky-50 text-sky-700 ring-sky-200 dark:bg-sky-500/10 dark:text-sky-300 dark:ring-sky-500/30; }
+
+    .section-title {
+        @apply relative inline-block font-display text-2xl font-semibold text-ink-900 sm:text-3xl dark:text-white;
+    }
+    .section-title::after {
+        content: "";
+        @apply absolute -bottom-1 left-0 h-2.5 w-full -z-10 rounded-full bg-sun-300/70 dark:bg-sun-500/30;
+    }
+
+    /* Màu chữ theo vai trò (đạt WCAG AA trên nền trắng, kem và nền tối). Không dùng sắc 300/400 làm màu chữ. */
+    .text-muted { @apply text-ink-500 dark:text-ink-300; }
+    .text-price { @apply text-coral-600 dark:text-coral-300; }
+    .text-ok { @apply text-mint-700 dark:text-mint-300; }
+    .text-age { @apply text-grape-600 dark:text-grape-300; }
+
+    .link { @apply font-bold text-sky-600 underline-offset-4 hover:underline dark:text-sky-300; }
+
+    /* Bảng dữ liệu (giỏ hàng, admin) */
+    .table-kz { @apply w-full text-left text-sm; }
+    .table-kz thead th {
+        @apply bg-ink-50 px-4 py-3 text-xs font-extrabold uppercase tracking-wider text-ink-500
+               first:rounded-l-2xl last:rounded-r-2xl dark:bg-ink-800/70 dark:text-ink-300;
+    }
+    .table-kz tbody td { @apply border-b border-ink-100 px-4 py-3.5 align-middle dark:border-ink-800; }
+    .table-kz tbody tr { @apply transition-colors hover:bg-sky-50/50 dark:hover:bg-ink-800/40; }
+    .table-kz tbody tr:last-child td { @apply border-b-0; }
+
+    /* Phân trang */
+    .pager { @apply flex flex-wrap items-center justify-center gap-2; }
+    .pager a, .pager span {
+        @apply grid size-10 place-items-center rounded-full bg-white font-bold text-ink-600 ring-2 ring-ink-100
+               transition hover:-translate-y-0.5 hover:ring-sky-300 dark:bg-ink-800 dark:text-ink-200 dark:ring-ink-700;
+    }
+    .pager .is-active { @apply bg-sky-600 text-white ring-sky-600 shadow-pop hover:translate-y-0; }
+    .pager .is-disabled { @apply pointer-events-none opacity-40; }
+
+    /* Khung xương khi đang tải */
+    .skeleton {
+        @apply rounded-xl bg-ink-100 dark:bg-ink-800;
+        background-image: linear-gradient(90deg, transparent, rgb(255 255 255 / .55), transparent);
+        background-size: 200% 100%;
+        @apply animate-shimmer;
+    }
+    .dark .skeleton { background-image: linear-gradient(90deg, transparent, rgb(255 255 255 / .06), transparent); }
+
+    /* Nội dung mô tả HTML (TinyMCE) */
+    .prose-kz { @apply space-y-3 leading-relaxed text-ink-600 dark:text-ink-300; }
+    .prose-kz h2, .prose-kz h3, .prose-kz h4 { @apply mt-5 font-display font-semibold text-ink-900 dark:text-white; }
+    .prose-kz h2 { @apply text-2xl; }
+    .prose-kz h3 { @apply text-xl; }
+    .prose-kz ul { @apply list-disc space-y-1 pl-6; }
+    .prose-kz ol { @apply list-decimal space-y-1 pl-6; }
+    .prose-kz a { @apply font-bold text-sky-600 underline underline-offset-4 dark:text-sky-300; }
+    .prose-kz img { @apply my-4 max-w-full rounded-2xl; }
+    .prose-kz blockquote { @apply border-l-4 border-sun-400 pl-4 italic; }
+    .prose-kz table { @apply w-full border-collapse overflow-hidden rounded-xl text-sm; }
+    .prose-kz th, .prose-kz td { @apply border border-ink-100 px-3 py-2 dark:border-ink-700; }
+
+    /* Chấm sao nhập liệu (radio đảo chiều) */
+    .star-input { @apply inline-flex flex-row-reverse justify-end gap-1; }
+    .star-input input { @apply sr-only; }
+    .star-input label { @apply cursor-pointer text-3xl text-ink-200 transition hover:scale-110 dark:text-ink-700; }
+    .star-input input:checked ~ label,
+    .star-input label:hover,
+    .star-input label:hover ~ label { @apply text-sun-400; }
+    .star-input input:focus-visible + label { @apply outline-2 outline-sky-400 rounded; }
+
+    /* Thanh trượt khoảng giá 2 đầu (2 input range chồng lên nhau) */
+    .range-dual { @apply relative h-6; }
+    .range-dual::before {
+        content: "";
+        @apply absolute inset-x-0 top-1/2 h-2 -translate-y-1/2 rounded-full bg-ink-100 dark:bg-ink-800;
+    }
+    .range-dual::after {
+        content: "";
+        @apply absolute top-1/2 h-2 -translate-y-1/2 rounded-full bg-gradient-to-r from-sun-400 to-coral-400;
+        left: var(--from, 0%);
+        right: calc(100% - var(--to, 100%));
+    }
+    .range-dual input {
+        @apply pointer-events-none absolute inset-0 z-10 w-full appearance-none bg-transparent;
+    }
+    .range-dual input::-webkit-slider-thumb {
+        @apply pointer-events-auto size-6 cursor-grab appearance-none rounded-full border-4 border-white bg-coral-400 shadow-soft transition active:scale-110 active:cursor-grabbing;
+    }
+    .range-dual input::-moz-range-thumb {
+        @apply pointer-events-auto size-5 cursor-grab rounded-full border-4 border-white bg-coral-400 shadow-soft;
+    }
+
+    /* Thanh cuộn ngang không hiện thanh cuộn */
+    .no-scrollbar { scrollbar-width: none; }
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+
+    /* Nền chấm bi */
+    .bg-dots {
+        background-image: radial-gradient(rgb(28 37 64 / .08) 1.5px, transparent 1.5px);
+        background-size: 22px 22px;
+    }
+    .dark .bg-dots { background-image: radial-gradient(rgb(255 255 255 / .06) 1.5px, transparent 1.5px); }
+}
+
+/* ---------- Hiệu ứng ---------- */
+
+/* Chuyển trang mượt (Chrome/Edge 126+; trình duyệt khác bỏ qua) */
+@view-transition { navigation: auto; }
+::view-transition-old(root), ::view-transition-new(root) { animation-duration: .22s; }
+::view-transition-group(kz-product-img) { animation-duration: .45s; animation-timing-function: cubic-bezier(.2, .8, .2, 1); }
+@media (prefers-reduced-motion: reduce) {
+    @view-transition { navigation: none; }
+}
+
+/* Banner trượt: nội dung slide đang hiện lần lượt trồi lên (--i: thứ tự) */
+.kz-slide [data-slide-in] {
+    transition: opacity .6s ease, translate .7s cubic-bezier(.34, 1.4, .64, 1);
+    transition-delay: calc(var(--i, 0) * 90ms + 200ms);
+}
+.kz-slide:not(.is-active) [data-slide-in] { opacity: 0; translate: 0 24px; transition-delay: 0s; }
+
+/* Linh vật gấu: chớp mắt, vẫy tay */
+.kz-mascot .kz-eyes { transform-box: fill-box; transform-origin: center; animation: kz-blink 5s infinite; }
+.kz-mascot .kz-paw { transform-box: fill-box; transform-origin: 20% 100%; animation: kz-wave 2.8s ease-in-out infinite; }
+@keyframes kz-blink { 0%, 91%, 97%, 100% { transform: scaleY(1); } 94% { transform: scaleY(.1); } }
+@keyframes kz-wave { 0%, 55%, 100% { transform: rotate(0); } 65% { transform: rotate(-24deg); } 75% { transform: rotate(12deg); } 85% { transform: rotate(-16deg); } }
+
+/* Thẻ sản phẩm: nghiêng 3D theo chuột (--rx, --ry và class is-tilting do app.js đặt) + vệt sáng theo con trỏ.
+   Chỉ gắn transform khi đang rê để thẻ đứng yên không chiếm lớp GPU riêng. */
+.kz-card.is-tilting { transform: perspective(900px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)); }
+.kz-shine {
+    position: absolute; inset: 0; z-index: 5; border-radius: inherit; pointer-events: none;
+    opacity: 0; transition: opacity .3s ease; mix-blend-mode: soft-light;
+    background: radial-gradient(circle at var(--mx, 50%) var(--my, 30%), rgb(255 255 255 / .55), transparent 45%);
+}
+.kz-card:hover .kz-shine { opacity: 1; }
+
+/* Nút "+" sau khi thêm vào giỏ */
+.btn.kz-added { background-color: var(--color-mint-400); box-shadow: 0 4px 0 0 var(--color-mint-600); }
+
+/* Vùng kết quả đang tải (lọc / sắp xếp) */
+.is-loading { opacity: .5; pointer-events: none; transition: opacity .2s ease; }
+.is-loading [data-product-card] img { filter: saturate(.4); }
+
+/* Khi in hoá đơn */
+@media print {
+    .no-print { display: none !important; }
+    body { background: #fff !important; color: #000 !important; }
+}

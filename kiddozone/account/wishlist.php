@@ -5,18 +5,6 @@
 require_once __DIR__ . '/../includes/init.php';
 require_once __DIR__ . '/../includes/product_card.php'; // đã gồm wishlist.php
 
-/** Trả JSON rồi dừng (dùng khi nút trái tim gọi bằng fetch, xem assets/js/shop.js). */
-function wishlist_json(int $status, array $data): void
-{
-    while (ob_get_level() > 0) {
-        ob_end_clean(); // bỏ mọi chữ lạ đã lỡ in ra, để phản hồi là JSON thuần
-    }
-    http_response_code($status);
-    header('Content-Type: application/json; charset=utf-8');
-    echo json_encode($data, JSON_UNESCAPED_UNICODE);
-    exit;
-}
-
 if (is_post()) {
     $isAjax = ($_SERVER['HTTP_X_REQUESTED_WITH'] ?? '') === 'XMLHttpRequest';
     if ($isAjax) {
@@ -31,13 +19,13 @@ if (is_post()) {
         flash('info', 'Vui lòng đăng nhập để dùng danh sách yêu thích.');
         $loginPath = 'login.php?redirect=' . urlencode($back);
         if ($isAjax) {
-            wishlist_json(401, ['ok' => false, 'login' => url($loginPath)]);
+            json_response(['ok' => false, 'login' => url($loginPath)], 401);
         }
         redirect($loginPath);
     }
     if (is_admin()) {
         if ($isAjax) {
-            wishlist_json(403, ['ok' => false, 'message' => 'Tài khoản Admin không dùng chức năng này.']);
+            json_response(['ok' => false, 'message' => 'Tài khoản Admin không dùng chức năng này.'], 403);
         }
         http_response_code(403);
         exit('403 - Tài khoản Admin không dùng chức năng này.');
@@ -68,7 +56,7 @@ if (is_post()) {
     }
 
     if ($isAjax) {
-        wishlist_json($ok ? 200 : 422, ['ok' => $ok, 'active' => $active, 'message' => $message]);
+        json_response(['ok' => $ok, 'active' => $active, 'message' => $message], $ok ? 200 : 422);
     }
     if ($message !== '') {
         flash($ok ? 'success' : 'warning', $message);
@@ -79,11 +67,7 @@ if (is_post()) {
 require_customer(); // chưa đăng nhập thì chuyển sang login.php, Admin thì bị chặn 403
 
 $products = db_query(
-    'SELECT p.id, p.name, p.price, p.sale_price, p.stock, c.name AS category_name,
-            ' . review_rating_columns() . ',
-            (SELECT pi.image_path FROM product_images pi
-              WHERE pi.product_id = p.id
-              ORDER BY pi.is_main DESC, pi.id ASC LIMIT 1) AS image
+    'SELECT ' . product_card_columns() . '
      FROM wishlists w
      JOIN products p   ON p.id = w.product_id
      JOIN categories c ON c.id = p.category_id
@@ -93,20 +77,22 @@ $products = db_query(
 )->fetchAll();
 
 $pageTitle = 'Sản phẩm yêu thích';
+$accountTab = 'wishlist';
 require __DIR__ . '/../includes/header.php';
+require __DIR__ . '/../includes/account_nav.php';
 ?>
 
-<h1 class="kz-section-title">Sản phẩm yêu thích</h1>
-
 <?php if (!$products): ?>
-    <div class="text-center py-5">
-        <i class="bi bi-heart fs-1 text-muted"></i>
-        <p class="mt-2 mb-3">Bạn chưa có sản phẩm yêu thích nào.</p>
-        <a class="btn kz-btn-register" href="<?= e(url('products.php')) ?>">Xem sản phẩm</a>
+    <div class="card flex flex-col items-center px-6 py-16 text-center">
+        <?= empty_icon('ph-heart', 'coral') ?>
+        <h2 class="mt-4 text-2xl font-semibold">Bạn chưa có sản phẩm yêu thích nào</h2>
+        <p class="mt-1 text-muted">Bấm vào trái tim trên sản phẩm để lưu lại món đồ chơi bạn thích.</p>
+        <a class="btn btn-primary mt-6" href="<?= e(url('products.php')) ?>">Khám phá đồ chơi</a>
     </div>
 <?php else: ?>
-    <p class="text-muted">Có <strong data-wishlist-count><?= count($products) ?></strong> sản phẩm. Bấm vào trái tim để bỏ khỏi danh sách.</p>
-    <div class="row row-cols-2 row-cols-md-3 row-cols-lg-4 g-3" data-wishlist-page>
+    <p class="mb-5 text-ink-500 dark:text-ink-300">Có <strong data-wishlist-count><?= count($products) ?></strong> sản phẩm. Bấm vào trái tim để bỏ khỏi danh sách.</p>
+    <h2 class="sr-only">Danh sách sản phẩm yêu thích</h2>
+    <div class="grid grid-cols-2 gap-4 sm:gap-5 md:grid-cols-3 lg:grid-cols-4" data-wishlist-page>
         <?php foreach ($products as $p) { render_product_card($p); } ?>
     </div>
 <?php endif; ?>

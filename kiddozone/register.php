@@ -1,5 +1,6 @@
 <?php
 require_once __DIR__ . '/includes/init.php';
+require_once __DIR__ . '/includes/auth_layout.php';
 
 if (is_logged_in()) {
     redirect(is_admin() ? 'admin/index.php' : 'index.php');
@@ -19,119 +20,42 @@ if (is_post()) {
     ]);
 
     if (!$errors) {
-        // Đăng ký thành công thì chuyển về trang đăng nhập kèm thông báo.
         flash('success', 'Đăng ký thành công! Vui lòng đăng nhập để tiếp tục.');
         redirect('login.php');
     }
 }
 
 $pageTitle = 'Đăng ký';
-$extraCss = [
-    url('assets/css/auth.css'),
-    'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css',
-];
+$extraScripts = [url('assets/js/auth.js')];
 require __DIR__ . '/includes/header.php';
+
+auth_layout_start('Bắt đầu hành trình mới', 'Tạo tài khoản', 'Tạo tài khoản để cùng bé yêu khám phá KiddoZone!',
+    'Tạo tài khoản để lưu sản phẩm yêu thích, theo dõi đơn hàng và nhận nhiều ưu đãi.');
 ?>
-
-<div class="auth-page">
-    <div class="auth-container">
-        
-        <!-- CỘT TRÁI: BANNER MÀU XANH CHỨA CHỮ VÀ ẢNH -->
-        <div class="auth-image-section">
-            <div class="banner-content">
-                <div class="auth-brand">
-                    <span class="brand-icon">K</span>
-                    <span>Kiddo<span>Zone</span></span>
-                </div>
-                
-                <span class="banner-label">⭐ THẾ GIỚI ĐỒ CHƠI</span>
-                
-                <h2 class="banner-title">
-                    Niềm vui nhỏ,<br>
-                    <span>Ước mơ lớn!</span>
-                </h2>
-                
-                <p class="banner-text">
-                    Tạo tài khoản để nhận ngay nhiều ưu đãi và theo dõi đơn hàng dễ dàng.
-                </p>
-                
-                <div class="toy-decoration">
-                    <span>🧸</span><span>🚗</span><span>🧩</span><span>🎁</span>
-                </div>
-            </div>
-            
-            <div class="banner-bottom">KIDDOZONE - PLAY & GROW</div>
+    <?php if ($errors): ?>
+        <div class="alert alert-danger mt-6" role="alert">
+            <i class="ph-fill ph-warning-circle text-lg" aria-hidden="true"></i>
+            <ul class="list-disc pl-4"><?php foreach ($errors as $err): ?><li><?= e($err) ?></li><?php endforeach; ?></ul>
         </div>
+    <?php endif; ?>
 
-        <!-- CỘT PHẢI: FORM ĐĂNG KÝ -->
-        <div class="auth-form-section">
-            <div class="auth-heading">
-                <span class="welcome-label">BẮT ĐẦU HÀNH TRÌNH MỚI</span>
-                <h1>Đăng ký</h1>
-                <p>Tạo tài khoản để cùng bé yêu khám phá KiddoZone!</p>
-            </div>
-
-            <?php if ($errors): ?>
-                <div class="auth-alert" role="alert">
-                    <?php foreach ($errors as $err): ?>
-                        <div><i class="fa-solid fa-triangle-exclamation"></i> <?= e($err) ?></div>
-                    <?php endforeach; ?>
-                </div>
-            <?php endif; ?>
-
-            <form method="post" id="registerForm" novalidate>
-                <?= csrf_field() ?>
-
-                <div class="form-group">
-                    <label for="full_name">Họ và tên</label>
-                    <div class="input-icon-wrapper">
-                        <i class="fa-regular fa-user"></i>
-                        <input type="text" id="full_name" name="full_name" class="auth-input" placeholder="Nhập họ và tên" value="<?= old('full_name') ?>" required>
-                    </div>
-                    <small class="field-error" id="nameError"></small>
-                </div>
-
-                <div class="form-group">
-                    <label for="email">Địa chỉ Email</label>
-                    <div class="input-icon-wrapper">
-                        <i class="fa-regular fa-envelope"></i>
-                        <input type="email" id="email" name="email" class="auth-input" placeholder="Nhập email của bạn" value="<?= old('email') ?>" required>
-                    </div>
-                    <small class="field-error" id="emailError"></small>
-                </div>
-
-                <div class="form-group">
-                    <label for="password">Mật khẩu</label>
-                    <div class="input-icon-wrapper">
-                        <i class="fa-solid fa-lock"></i>
-                        <input type="password" id="password" name="password" class="auth-input" placeholder="Tạo mật khẩu" required>
-                        <button type="button" class="toggle-password" id="togglePassword">
-                            <i class="fa-regular fa-eye-slash" id="eyeIcon"></i>
-                        </button>
-                    </div>
-                    <small class="field-error" id="passwordError"></small>
-                </div>
-
-                <div class="form-group">
-                    <label for="confirm_password">Xác nhận mật khẩu</label>
-                    <div class="input-icon-wrapper">
-                        <i class="fa-solid fa-lock"></i>
-                        <input type="password" id="confirm_password" name="confirm_password" class="auth-input" placeholder="Nhập lại mật khẩu" required>
-                    </div>
-                    <small class="field-error" id="confirmError"></small>
-                </div>
-
-                <button type="submit" class="btn-login" style="margin-top: 10px;">
-                    ĐĂNG KÝ <span>→</span>
-                </button>
-            </form>
-
-            <div class="auth-register" style="margin-top: 20px;">
-                Đã có tài khoản? <a href="<?= e(url('login.php')) ?>">Đăng nhập ngay</a>
-            </div>
+    <form method="post" id="registerForm" novalidate class="mt-8 space-y-3" x-data="{ pw: '' }">
+        <?= csrf_field() ?>
+        <?php auth_input('full_name', 'Họ và tên', 'text', 'ph-user', 'Nhập họ và tên', old('full_name'), 'autocomplete="name"'); ?>
+        <?php auth_input('email', 'Địa chỉ email', 'email', 'ph-envelope-simple', 'Nhập email của bạn', old('email'), 'autocomplete="email"'); ?>
+        <?php auth_input('password', 'Mật khẩu', 'password', 'ph-lock-key', 'Tối thiểu 8 ký tự, có chữ và số', '', 'autocomplete="new-password" x-model="pw"', true); ?>
+        <!-- Thanh độ mạnh mật khẩu -->
+        <div class="-mt-2 flex gap-1.5" aria-hidden="true" x-show="pw.length" x-cloak>
+            <?php for ($i = 1; $i <= 4; $i++): ?>
+                <span class="h-1.5 flex-1 rounded-full bg-ink-100 transition dark:bg-ink-800"
+                      :class="(pw.length >= 8) + /[A-Za-z]/.test(pw) + /[0-9]/.test(pw) + /[^A-Za-z0-9]/.test(pw) >= <?= $i ?> && ['', 'bg-coral-400!', 'bg-sun-400!', 'bg-sky-400!', 'bg-mint-400!'][(pw.length >= 8) + /[A-Za-z]/.test(pw) + /[0-9]/.test(pw) + /[^A-Za-z0-9]/.test(pw)]"></span>
+            <?php endfor; ?>
         </div>
-    </div>
-</div>
+        <?php auth_input('confirm_password', 'Xác nhận mật khẩu', 'password', 'ph-lock-key', 'Nhập lại mật khẩu', '', 'autocomplete="new-password"'); ?>
+        <button type="submit" class="btn btn-primary btn-lg w-full">Đăng ký <i class="ph-bold ph-arrow-right" aria-hidden="true"></i></button>
+    </form>
 
-<script src="<?= e(url('assets/js/auth.js')) ?>"></script>
-<?php require __DIR__ . '/includes/footer.php'; ?>
+    <p class="mt-8 text-center text-sm text-ink-500 dark:text-ink-300">Đã có tài khoản? <a class="link" href="<?= e(url('login.php')) ?>">Đăng nhập ngay</a></p>
+<?php
+auth_layout_end();
+require __DIR__ . '/includes/footer.php';

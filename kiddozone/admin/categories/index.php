@@ -18,71 +18,40 @@ $categories = db_query(
      LIMIT ' . (int)ITEMS_PER_PAGE_ADMIN . ' OFFSET ' . (int)$offset
 )->fetchAll();
 
+$pageSubtitle = 'Tổng cộng ' . $total . ' danh mục';
+$pageActions = '<a href="' . e(url('admin/categories/create.php')) . '" class="btn btn-primary"><i class="ph-bold ph-plus" aria-hidden="true"></i> Thêm danh mục</a>';
 require __DIR__ . '/../admin_header.php';
+$tints = ['bg-sun-100 text-sun-800', 'bg-sky-100 text-sky-700', 'bg-coral-100 text-coral-700', 'bg-mint-100 text-ok', 'bg-grape-100 text-grape-600'];
 ?>
 
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <h2 class="fw-bold mb-0">Quản lý danh mục</h2>
-    <a href="create.php" class="btn btn-primary">
-        <i class="bi bi-plus-circle"></i> Thêm danh mục
-    </a>
+<div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+    <?php foreach ($categories as $i => $category): ?>
+        <article data-reveal class="card flex flex-col p-5">
+            <div class="flex items-start gap-4">
+                <span class="grid size-14 shrink-0 place-items-center rounded-2xl text-2xl <?= $tints[(int)$category['id'] % count($tints)] ?>"><i class="ph-fill ph-folder-simple" aria-hidden="true"></i></span>
+                <div class="min-w-0 flex-1">
+                    <h2 class="truncate font-display text-lg font-semibold"><?= e($category['name']) ?></h2>
+                    <p class="line-clamp-2 text-sm text-muted"><?= e($category['description'] ?? 'Chưa có mô tả') ?></p>
+                </div>
+            </div>
+            <div class="mt-4 flex items-center gap-2 border-t border-ink-100 pt-4 dark:border-ink-800">
+                <span class="badge badge-sky"><?= (int)$category['product_count'] ?> sản phẩm</span>
+                <?= (int)$category['status'] === 1 ? '<span class="badge badge-mint">Hiển thị</span>' : '<span class="badge badge-ink">Đang ẩn</span>' ?>
+                <span class="ml-auto flex gap-1">
+                    <a href="<?= e(url('admin/categories/edit.php?id=' . (int)$category['id'])) ?>" class="btn btn-ghost btn-sm" aria-label="Sửa <?= e($category['name']) ?>"><i class="ph-bold ph-pencil-simple" aria-hidden="true"></i></a>
+                    <form action="<?= e(url('admin/categories/delete.php')) ?>" method="post" data-confirm="Bạn có chắc muốn xóa danh mục này?">
+                        <?= csrf_field() ?>
+                        <input type="hidden" name="id" value="<?= (int)$category['id'] ?>">
+                        <button type="submit" class="btn btn-danger-ghost btn-sm" aria-label="Xóa <?= e($category['name']) ?>"><i class="ph-bold ph-trash" aria-hidden="true"></i></button>
+                    </form>
+                </span>
+            </div>
+        </article>
+    <?php endforeach; ?>
+    <?php if (!$categories): ?>
+        <p class="card p-10 text-center text-muted sm:col-span-2 xl:col-span-3">Chưa có danh mục nào.</p>
+    <?php endif; ?>
 </div>
-
-<div class="card shadow-sm border-0">
-    <div class="card-body table-responsive">
-        <table class="table table-hover align-middle">
-            <thead class="table-light">
-                <tr>
-                    <th>ID</th>
-                    <th>Tên danh mục</th>
-                    <th>Mô tả</th>
-                    <th class="text-center">Số sản phẩm</th>
-                    <th>Trạng thái</th>
-                    <th>Thao tác</th>
-                </tr>
-            </thead>
-            <tbody>
-                <?php foreach ($categories as $category): ?>
-                    <tr>
-                        <td><?= (int)$category['id'] ?></td>
-                        <td><?= e($category['name']) ?></td>
-                        <td><?= e($category['description'] ?? '') ?></td>
-                        <td class="text-center"><?= (int)$category['product_count'] ?></td>
-                        <td>
-                            <?php if ((int)$category['status'] === 1): ?>
-                                <span class="badge bg-success">Hiển thị</span>
-                            <?php else: ?>
-                                <span class="badge bg-secondary">Đang ẩn</span>
-                            <?php endif; ?>
-                        </td>
-                        <td class="text-nowrap">
-                            <a href="edit.php?id=<?= (int)$category['id'] ?>" class="btn btn-warning btn-sm">
-                                <i class="bi bi-pencil-square"></i> Sửa
-                            </a>
-                            <form action="delete.php" method="post" class="d-inline"
-                                  data-confirm="Bạn có chắc muốn xóa danh mục này?">
-                                <?= csrf_field() ?>
-                                <input type="hidden" name="id" value="<?= (int)$category['id'] ?>">
-                                <button type="submit" class="btn btn-danger btn-sm">
-                                    <i class="bi bi-trash"></i> Xóa
-                                </button>
-                            </form>
-                        </td>
-                    </tr>
-                <?php endforeach; ?>
-
-                <?php if (!$categories): ?>
-                    <tr>
-                        <td colspan="6" class="text-center text-muted">Chưa có danh mục nào.</td>
-                    </tr>
-                <?php endif; ?>
-            </tbody>
-        </table>
-    </div>
-</div>
-
-<div class="mt-4">
-    <?= render_pagination($page, $pages) ?>
-</div>
+<?= render_pagination($page, $pages) ?>
 
 <?php require __DIR__ . '/../admin_footer.php'; ?>

@@ -58,11 +58,7 @@ function recently_viewed_products(array $ids): array
     }
     $marks = implode(',', array_fill(0, count($ids), '?')); // chỉ sinh dấu ?, giá trị đi qua tham số
     $rows = db_query(
-        "SELECT p.id, p.name, p.price, p.sale_price, p.stock, c.name AS category_name,
-                " . review_rating_columns() . ",
-                (SELECT pi.image_path FROM product_images pi
-                  WHERE pi.product_id = p.id
-                  ORDER BY pi.is_main DESC, pi.id ASC LIMIT 1) AS image
+        "SELECT " . product_card_columns() . "
          FROM products p
          JOIN categories c ON c.id = p.category_id
          WHERE p.id IN ($marks) AND p.status = 1 AND c.status = 1",
@@ -89,9 +85,12 @@ function render_recently_viewed(array $products, string $title = 'Sản phẩm �
         return;
     }
     ?>
-    <section class="mt-5 mb-5">
-        <h2 class="kz-section-title"><?= e($title) ?></h2>
-        <div class="row row-cols-2 row-cols-md-3 row-cols-lg-4 g-3">
+    <section class="mt-16">
+        <div class="mb-6 flex items-center gap-3">
+            <span class="grid size-11 place-items-center rounded-2xl bg-grape-100 text-2xl text-age dark:bg-grape-500/15"><i class="ph-fill ph-clock-counter-clockwise" aria-hidden="true"></i></span>
+            <h2 class="section-title"><?= e($title) ?></h2>
+        </div>
+        <div class="grid grid-cols-2 gap-4 sm:gap-5 md:grid-cols-3 lg:grid-cols-4">
             <?php foreach ($products as $p) { render_product_card($p); } ?>
         </div>
     </section>

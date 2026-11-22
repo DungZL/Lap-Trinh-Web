@@ -90,77 +90,46 @@ if (is_post()) {
     $userRecord['status']    = $status;
 }
 
-$pageTitle = 'Chỉnh sửa người dùng';
+$pageTitle = 'Sửa người dùng #' . (int)$userRecord['id'];
+$pageSubtitle = 'Đã đặt ' . $orderCount . ' đơn hàng';
 require __DIR__ . '/../admin_header.php';
 ?>
 
-<div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-4">
-    <h2 class="fw-bold mb-0">Chỉnh sửa người dùng #<?= (int)$userRecord['id'] ?></h2>
-    <span class="text-muted">Số đơn hàng đã đặt: <strong><?= $orderCount ?></strong></span>
-</div>
-
-<div class="card shadow-sm border-0">
-    <div class="card-body">
-        <?php if ($error): ?>
-            <div class="alert alert-danger"><?= e($error) ?></div>
-        <?php endif; ?>
-
-        <form method="post">
-            <?= csrf_field() ?>
-
-            <div class="row g-3 mb-3">
-                <div class="col-md-6">
-                    <label class="form-label" for="full_name">Họ và tên</label>
-                    <input type="text" id="full_name" name="full_name" class="form-control"
-                           maxlength="100" value="<?= e($userRecord['full_name']) ?>" required>
-                </div>
-                <div class="col-md-6">
-                    <label class="form-label" for="email">Email</label>
-                    <input type="email" id="email" name="email" class="form-control"
-                           maxlength="150" value="<?= e($userRecord['email']) ?>" required>
-                </div>
+<div class="card max-w-3xl p-6 sm:p-8">
+    <?php if ($error): ?>
+        <div class="alert alert-danger mb-5" role="alert"><i class="ph-fill ph-warning-circle text-lg" aria-hidden="true"></i> <?= e($error) ?></div>
+    <?php endif; ?>
+    <form method="post" class="grid gap-4 sm:grid-cols-2">
+        <?= csrf_field() ?>
+        <div><label class="label" for="full_name">Họ và tên</label><input type="text" id="full_name" name="full_name" class="input" maxlength="100" value="<?= e($userRecord['full_name']) ?>" required></div>
+        <div><label class="label" for="email">Email</label><input type="email" id="email" name="email" class="input" maxlength="150" value="<?= e($userRecord['email']) ?>" required></div>
+        <div><label class="label" for="phone">Số điện thoại</label><input type="text" id="phone" name="phone" class="input" maxlength="15" value="<?= e($userRecord['phone'] ?? '') ?>"></div>
+        <div class="grid grid-cols-2 gap-3">
+            <div>
+                <label class="label" for="role">Vai trò</label>
+                <select id="role" name="role" class="select">
+                    <option value="customer" data-icon="ph-user" <?= $userRecord['role'] === 'customer' ? 'selected' : '' ?>>Khách hàng</option>
+                    <option value="admin" data-icon="ph-crown" <?= $userRecord['role'] === 'admin' ? 'selected' : '' ?>>Quản trị viên</option>
+                </select>
             </div>
-
-            <div class="row g-3 mb-3">
-                <div class="col-md-6">
-                    <label class="form-label" for="phone">Số điện thoại</label>
-                    <input type="text" id="phone" name="phone" class="form-control"
-                           maxlength="15" value="<?= e($userRecord['phone'] ?? '') ?>">
-                </div>
-                <div class="col-md-3">
-                    <label class="form-label" for="role">Vai trò</label>
-                    <select id="role" name="role" class="form-select">
-                        <option value="customer" <?= $userRecord['role'] === 'customer' ? 'selected' : '' ?>>Khách hàng</option>
-                        <option value="admin" <?= $userRecord['role'] === 'admin' ? 'selected' : '' ?>>Quản trị viên</option>
-                    </select>
-                </div>
-                <div class="col-md-3">
-                    <label class="form-label" for="status">Trạng thái</label>
-                    <select id="status" name="status" class="form-select">
-                        <option value="1" <?= (int)$userRecord['status'] === 1 ? 'selected' : '' ?>>Hoạt động</option>
-                        <option value="0" <?= (int)$userRecord['status'] === 0 ? 'selected' : '' ?>>Đã khóa</option>
-                    </select>
-                </div>
+            <div>
+                <label class="label" for="status">Trạng thái</label>
+                <select id="status" name="status" class="select">
+                    <option value="1" data-icon="ph-check-circle" <?= (int)$userRecord['status'] === 1 ? 'selected' : '' ?>>Hoạt động</option>
+                    <option value="0" data-icon="ph-lock" <?= (int)$userRecord['status'] === 0 ? 'selected' : '' ?>>Đã khóa</option>
+                </select>
             </div>
-
-            <div class="mb-3">
-                <label class="form-label" for="address">Địa chỉ</label>
-                <input type="text" id="address" name="address" class="form-control"
-                       maxlength="255" value="<?= e($userRecord['address'] ?? '') ?>">
-            </div>
-
-            <div class="mb-4">
-                <label class="form-label" for="new_password">Đặt lại mật khẩu mới (để trống nếu không đổi)</label>
-                <input type="password" id="new_password" name="new_password" class="form-control"
-                       autocomplete="new-password" placeholder="Tối thiểu 8 ký tự, gồm cả chữ và số">
-            </div>
-
-            <button type="submit" class="btn btn-primary">
-                <i class="bi bi-save"></i> Cập nhật
-            </button>
-            <a href="index.php" class="btn btn-secondary">Quay lại</a>
-        </form>
-    </div>
+        </div>
+        <div class="sm:col-span-2"><label class="label" for="address">Địa chỉ</label><input type="text" id="address" name="address" class="input" maxlength="255" value="<?= e($userRecord['address'] ?? '') ?>"></div>
+        <div class="sm:col-span-2">
+            <label class="label" for="new_password">Đặt lại mật khẩu <span class="font-normal text-muted">(để trống nếu không đổi)</span></label>
+            <input type="password" id="new_password" name="new_password" class="input" autocomplete="new-password" placeholder="Tối thiểu 8 ký tự, gồm cả chữ và số">
+        </div>
+        <div class="flex gap-2 pt-2 sm:col-span-2">
+            <button type="submit" class="btn btn-primary"><i class="ph-bold ph-floppy-disk" aria-hidden="true"></i> Cập nhật</button>
+            <a href="<?= e(url('admin/users/index.php')) ?>" class="btn btn-ghost">Quay lại</a>
+        </div>
+    </form>
 </div>
 
 <?php require __DIR__ . '/../admin_footer.php'; ?>
