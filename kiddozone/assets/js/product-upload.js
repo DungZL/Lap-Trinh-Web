@@ -14,6 +14,14 @@ document.addEventListener('DOMContentLoaded', function () {
     const maxFiles = 10;
     const maxSize = 2 * 1024 * 1024;
 
+    function getExistingCount() {
+        return document.querySelectorAll('[data-existing-image]').length;
+    }
+
+    function getMaxNewFiles() {
+        return Math.max(0, maxFiles - getExistingCount());
+    }
+
     zone.addEventListener('click', () => input.click());
 
     zone.addEventListener('dragover', function (e) {
@@ -37,6 +45,7 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     function addFiles(newFiles) {
+        const maxNew = getMaxNewFiles();
         for (const file of Array.from(newFiles)) {
             if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
                 alert('File không hợp lệ: ' + file.name);
@@ -54,8 +63,10 @@ document.addEventListener('DOMContentLoaded', function () {
                 f.lastModified === file.lastModified
             )) continue;
 
-            if (selectedFiles.length >= maxFiles) {
-                alert('Chỉ được chọn tối đa 10 ảnh');
+            if (selectedFiles.length >= maxNew) {
+                alert(getExistingCount() > 0
+                    ? `Mỗi sản phẩm chỉ được có tối đa ${maxFiles} ảnh (hiện đã có ${getExistingCount()} ảnh cũ).`
+                    : `Chỉ được chọn tối đa ${maxFiles} ảnh.`);
                 break;
             }
 
@@ -73,6 +84,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function renderPreview() {
+        const existingCount = getExistingCount();
         preview.innerHTML = '';
 
         selectedFiles.forEach((file, index) => {
@@ -102,7 +114,7 @@ item.style.cssText = `
 const remove = document.createElement('button');
 remove.type = 'button';
 remove.className = 'product-image-remove';
-remove.innerHTML = '&times;';
+remove.textContent = '×';
 remove.title = 'Xóa ảnh này';
 
 // Ép nút X hiển thị trên ảnh
@@ -136,15 +148,11 @@ remove.addEventListener('click', function (e) {
     updateInput();
     renderPreview();
 });
-            remove.type = 'button';
-            remove.className = 'product-image-remove';
-            remove.textContent = '×';
-            remove.title = 'Xóa ảnh';
 
             item.appendChild(img);
             item.appendChild(remove);
 
-            if (index === 0) {
+            if (existingCount === 0 && index === 0) {
                 const label = document.createElement('span');
                 label.className = 'product-main-label';
                 label.textContent = 'Ảnh đại diện';
@@ -154,9 +162,13 @@ remove.addEventListener('click', function (e) {
             preview.appendChild(item);
         });
 
-        counter.textContent =
-            `Đã chọn ${selectedFiles.length}/${maxFiles} ảnh`;
+        counter.textContent = existingCount > 0
+            ? `Đã chọn ${selectedFiles.length} ảnh mới (tổng ${existingCount + selectedFiles.length}/${maxFiles} ảnh)`
+            : `Đã chọn ${selectedFiles.length}/${maxFiles} ảnh`;
     }
+
+    document.addEventListener('kz:existing-images-changed', renderPreview);
+    renderPreview();
 
     console.log('Product upload initialized');
 });

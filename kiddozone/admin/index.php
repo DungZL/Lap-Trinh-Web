@@ -1,4 +1,3 @@
-
 <?php
 require_once __DIR__ . '/../includes/init.php';
 require_admin();
@@ -52,6 +51,30 @@ $monthlyRevenue = array_fill(0, 12, 0);
 foreach ($monthlyRows as $row) {
     $monthIndex = (int)$row['month'] - 1;
     $monthlyRevenue[$monthIndex] = (float)$row['revenue'];
+}
+
+// 7. Doanh thu 7 ngày gần đây (từ hôm nay lùi 6 ngày).
+$dailyRows = db_query(
+    "SELECT DATE(created_at) AS day,
+            COALESCE(SUM(total_amount), 0) AS revenue
+     FROM orders
+     WHERE status = 'completed'
+       AND created_at >= DATE_SUB(CURDATE(), INTERVAL 6 DAY)
+     GROUP BY DATE(created_at)"
+)->fetchAll();
+
+$dailyMap = [];
+foreach ($dailyRows as $row) {
+    $dailyMap[$row['day']] = (float)$row['revenue'];
+}
+
+$dailyLabels = [];
+$dailyRevenue = [];
+for ($i = 6; $i >= 0; $i--) {
+    $ts = strtotime("-{$i} days");
+    $ymd = date('Y-m-d', $ts);
+    $dailyLabels[] = date('d/m', $ts);
+    $dailyRevenue[] = $dailyMap[$ymd] ?? 0;
 }
 
 require __DIR__ . '/admin_header.php';
@@ -140,10 +163,16 @@ require __DIR__ . '/admin_header.php';
 <!-- Biểu đồ doanh thu -->
 <div class="card border-0 shadow-sm mb-4">
     <div class="card-body">
-        <h5 class="fw-bold mb-4">
-            <i class="bi bi-bar-chart"></i>
-            Biểu đồ doanh thu năm <?= $year ?>
-        </h5>
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-4">
+            <h5 class="fw-bold mb-0">
+                <i class="bi bi-bar-chart"></i>
+                <span id="revenueChartTitle">Biểu đồ doanh thu năm <?= $year ?></span>
+            </h5>
+            <div class="btn-group btn-group-sm" role="group" aria-label="Chế độ biểu đồ doanh thu">
+                <button type="button" class="btn btn-primary" data-chart-mode="monthly">Theo tháng (<?= $year ?>)</button>
+                <button type="button" class="btn btn-outline-primary" data-chart-mode="daily">7 ngày gần đây</button>
+            </div>
+        </div>
 
         <div style="height: 350px;">
             <canvas id="revenueChart"></canvas>
@@ -162,24 +191,27 @@ require __DIR__ . '/admin_header.php';
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <script>
-const revenueData = <?= json_encode(
-    $monthlyRevenue,
-    JSON_NUMERIC_CHECK
-) ?>;
+const chartDatasets = {
+    monthly: {
+        title: <?= json_encode('Biểu đồ doanh thu năm ' . $year) ?>,
+        labels: ['T1', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'T8', 'T9', 'T10', 'T11', 'T12'],
+        data: <?= json_encode($monthlyRevenue, JSON_NUMERIC_CHECK) ?>
+    },
+    daily: {
+        title: 'Biểu đồ doanh thu 7 ngày gần đây',
+        labels: <?= json_encode($dailyLabels) ?>,
+        data: <?= json_encode($dailyRevenue, JSON_NUMERIC_CHECK) ?>
+    }
+};
 
 const ctx = document.getElementById('revenueChart');
-
-new Chart(ctx, {
+const revenueChart = new Chart(ctx, {
     type: 'bar',
     data: {
-        labels: [
-            'T1', 'T2', 'T3', 'T4',
-            'T5', 'T6', 'T7', 'T8',
-            'T9', 'T10', 'T11', 'T12'
-        ],
+        labels: chartDatasets.monthly.labels,
         datasets: [{
             label: 'Doanh thu (VNĐ)',
-            data: revenueData,
+            data: chartDatasets.monthly.data,
             backgroundColor: '#e8ad43',
             borderColor: '#d18d21',
             borderWidth: 1,
@@ -208,6 +240,25 @@ new Chart(ctx, {
             }
         }
     }
+});
+
+document.querySelectorAll('[data-chart-mode]').forEach(btn => {
+    btn.addEventListener('click', function () {
+        const mode = this.getAttribute('data-chart-mode');
+        const cfg = chartDatasets[mode];
+        if (!cfg) return;
+
+        document.getElementById('revenueChartTitle').textContent = cfg.title;
+        revenueChart.data.labels = cfg.labels;
+        revenueChart.data.datasets[0].data = cfg.data;
+        revenueChart.update();
+
+        document.querySelectorAll('[data-chart-mode]').forEach(b => {
+            const active = b === this;
+            b.classList.toggle('btn-primary', active);
+            b.classList.toggle('btn-outline-primary', !active);
+        });
+    });
 });
 </script>
 

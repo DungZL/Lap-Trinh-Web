@@ -144,15 +144,29 @@ body { font-family: 'Nunito', system-ui, sans-serif; color: var(--kz-ink); }
     background-color: #f3de65;
     border-bottom: 1px solid #e5e9ee;
 }
+.nav-category .navbar-nav .nav-link,
 .nav-category .nav-link {
     color: var(--kz-ink);
     font-weight: 600;
     padding: 12px 20px;
     font-size: 15px;
 }
+.nav-category .navbar-nav .nav-link:hover,
 .nav-category .nav-link:hover { color: #1d4ed8; }
+.nav-category .navbar-nav .nav-link.active,
 .nav-category .nav-link.active { background: rgba(255, 255, 255, .55); color: #1d4ed8; }
+.nav-category .navbar-nav .nav-sale,
 .nav-category .nav-sale { color: #c81e1e; font-weight: 700; }
+
+@media (max-width: 991.98px) {
+    .nav-category .navbar-nav {
+        padding: 0 0 8px;
+    }
+    .nav-category .navbar-nav .nav-link {
+        padding: 10px 14px;
+        border-radius: 8px;
+    }
+}
 
 /* ---------- Footer ---------- */
 .kz-footer { background: var(--kz-ink); color: #D9DFEC; }

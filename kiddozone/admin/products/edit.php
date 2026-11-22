@@ -1,4 +1,3 @@
-
 <?php
 require_once __DIR__ . '/../../includes/init.php';
 require_admin();
@@ -291,7 +290,20 @@ foreach ($imagesToDelete as $image) {
             $error = 'Không thể cập nhật: ' . $ex->getMessage();
         }
     }
+
+    // Giữ lại dữ liệu người dùng vừa nhập khi có lỗi
+    $product['name']        = $name;
+    $product['category_id'] = $categoryId !== false ? $categoryId : $product['category_id'];
+    $product['price']       = preg_replace('/\D/', '', (string)($_POST['price'] ?? ''));
+    $product['sale_price']  = $saleInput === '' ? null : preg_replace('/\D/', '', $saleInput);
+    $product['stock']       = (int)($_POST['stock'] ?? $product['stock']);
+    $product['description'] = (string)($_POST['description'] ?? '');
+    $product['is_featured'] = $featured;
+    $product['status']      = in_array($status, [0, 1], true) ? $status : $product['status'];
 }
+
+$priceDigits = preg_replace('/\D/', '', (string)($product['price'] ?? ''));
+$saleDigits  = $product['sale_price'] === null ? '' : preg_replace('/\D/', '', (string)$product['sale_price']);
 
 require __DIR__ . '/../admin_header.php';
 ?>
@@ -341,13 +353,15 @@ require __DIR__ . '/../admin_header.php';
                         type="text"
                         id="priceDisplay"
                         class="form-control"
-                        value="<?= number_format((float)$product['price'], 0, ',', '.') ?>"
+                        inputmode="numeric"
+                        value="<?= e($priceDigits === '' ? '' : number_format((int)$priceDigits, 0, ',', '.')) ?>"
+                        required
                     >
                     <input
                         type="hidden"
                         id="price"
                         name="price"
-                        value="<?= e($product['price']) ?>"
+                        value="<?= e($priceDigits) ?>"
                     >
                 </div>
 
@@ -357,13 +371,14 @@ require __DIR__ . '/../admin_header.php';
                         type="text"
                         id="salePriceDisplay"
                         class="form-control"
-                        value="<?= $product['sale_price'] === null ? '' : number_format((float)$product['sale_price'], 0, ',', '.') ?>"
+                        inputmode="numeric"
+                        value="<?= e($saleDigits === '' ? '' : number_format((int)$saleDigits, 0, ',', '.')) ?>"
                     >
                     <input
                         type="hidden"
                         id="salePrice"
                         name="sale_price"
-                        value="<?= e($product['sale_price'] ?? '') ?>"
+                        value="<?= e($saleDigits) ?>"
                     >
                 </div>
 
@@ -404,6 +419,7 @@ require __DIR__ . '/../admin_header.php';
             ?>
 
             <div class="product-preview-item position-relative"
+                 data-existing-image
                  style="aspect-ratio:1/1;overflow:hidden;">
 
                 <img
@@ -509,6 +525,8 @@ tinymce.init({
     selector: '#description',
     height: 350,
     menubar: false,
+    branding: false,
+    promotion: false,
     license_key: 'gpl',
     plugins: 'lists link table code wordcount',
     toolbar: 'undo redo | blocks | bold italic underline | bullist numlist | link table | code'
@@ -518,6 +536,7 @@ document.addEventListener('DOMContentLoaded', function () {
     function formatMoney(displayId, hiddenId) {
         const display = document.getElementById(displayId);
         const hidden = document.getElementById(hiddenId);
+        if (!display || !hidden) return;
 
         display.addEventListener('input', function () {
             const digits = display.value.replace(/\D/g, '');
@@ -530,6 +549,46 @@ document.addEventListener('DOMContentLoaded', function () {
 
     formatMoney('priceDisplay', 'price');
     formatMoney('salePriceDisplay', 'salePrice');
+
+    const form = document.querySelector('form[enctype="multipart/form-data"]');
+    if (form) {
+        form.addEventListener('submit', function (event) {
+            if (window.tinymce) {
+                tinymce.triggerSave();
+            }
+
+            const price = document.getElementById('price');
+            const salePrice = document.getElementById('salePrice');
+            if (!price || !salePrice) return;
+
+            const priceValue = Number(price.value);
+            const saleValue = salePrice.value === '' ? null : Number(salePrice.value);
+
+            let error = '';
+            if (price.value === '' || !Number.isSafeInteger(priceValue) || priceValue < 0) {
+                error = 'Giá bán không hợp lệ.';
+            } else if (
+                saleValue !== null &&
+                (!Number.isSafeInteger(saleValue) || saleValue < 0 || saleValue > priceValue)
+            ) {
+                error = 'Giá khuyến mãi không được lớn hơn giá bán.';
+            }
+
+            if (error) {
+                event.preventDefault();
+                alert(error);
+            }
+        });
+    }
+
+    const errorBox = document.getElementById('productError');
+    if (errorBox) {
+        document.querySelectorAll('#priceDisplay, #salePriceDisplay').forEach(field => {
+            field.addEventListener('input', function () {
+                errorBox.style.display = 'none';
+            });
+        });
+    }
 });
 </script>
 
@@ -549,8 +608,9 @@ function removeOldImage(imageId, button) {
     form.appendChild(input);
 
     button.closest('.product-preview-item').remove();
+    document.dispatchEvent(new CustomEvent('kz:existing-images-changed'));
 }
 </script>
 
-<script src="<?= e(url('assets/js/product-upload.js')) ?>?v=2"></script>
+<script src="<?= e(url('assets/js/product-upload.js')) ?>?v=6"></script>
 <?php require __DIR__ . '/../admin_footer.php'; ?>

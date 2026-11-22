@@ -11,6 +11,8 @@ $q = is_string($qRaw) ? mb_substr(trim($qRaw), 0, 100) : '';
 $catRaw = $_GET['category'] ?? 0;
 $categoryId = is_string($catRaw) ? (int)$catRaw : 0;
 
+$saleOnly = ($_GET['sale'] ?? '') === '1';
+
 // Giá đang bán: ưu tiên giá giảm nếu có. Dùng khi sắp xếp theo giá.
 $finalPrice = 'IF(p.sale_price IS NOT NULL AND p.sale_price > 0, p.sale_price, p.price)';
 
@@ -44,6 +46,9 @@ if ($categoryId > 0) {
     $where[]  = 'p.category_id = ?';
     $params[] = $categoryId;
 }
+if ($saleOnly) {
+    $where[] = 'p.sale_price IS NOT NULL AND p.sale_price > 0 AND p.sale_price < p.price';
+}
 $whereSql = implode(' AND ', $where);
 
 $total = (int)db_query(
@@ -70,38 +75,48 @@ $products = db_query(
 /* ---------- 3. Chuẩn bị hiển thị ---------- */
 
 /** Tạo link tới products.php, giữ các bộ lọc hiện có và cho phép ghi đè một vài giá trị (luôn về trang 1). */
-$linkTo = function (array $override = []) use ($q, $categoryId, $sort): string {
-    $f = array_merge(['q' => $q, 'category' => $categoryId, 'sort' => $sort], $override);
+$linkTo = function (array $override = []) use ($q, $categoryId, $saleOnly, $sort): string {
+    $f = array_merge(['q' => $q, 'category' => $categoryId, 'sale' => $saleOnly, 'sort' => $sort], $override);
     $qs = [];
     if ($f['q'] !== '')          { $qs['q'] = $f['q']; }
     if ((int)$f['category'] > 0) { $qs['category'] = (int)$f['category']; }
+    if (!empty($f['sale']))      { $qs['sale'] = '1'; }
     if ($f['sort'] !== 'newest') { $qs['sort'] = $f['sort']; }
     return url('products.php' . ($qs ? '?' . http_build_query($qs) : ''));
 };
 
-$hasFilter = ($q !== '' || $categoryId > 0 || $sort !== 'newest');
+$hasFilter = ($q !== '' || $categoryId > 0 || $saleOnly || $sort !== 'newest');
 
-$pageTitle = $categoryId > 0 ? $categoryNames[$categoryId] : 'Sản phẩm';
+$pageTitle = $categoryId > 0 ? $categoryNames[$categoryId] : ($saleOnly ? 'Sản phẩm khuyến mãi' : 'Sản phẩm');
 require __DIR__ . '/includes/header.php';
 ?>
 
-<h1 class="kz-section-title">Sản phẩm</h1>
+<h1 class="kz-section-title"><?= $saleOnly ? 'Sản phẩm khuyến mãi' : 'Sản phẩm' ?></h1>
 
 <!-- Chọn danh mục -->
 <ul class="kz-pills" aria-label="Danh mục">
-    <li><a class="kz-pill <?= $categoryId === 0 ? 'active' : '' ?>" href="<?= e($linkTo(['category' => 0])) ?>">Tất cả</a></li>
+    <li><a class="kz-pill <?= $categoryId === 0 && !$saleOnly ? 'active' : '' ?>" href="<?= e($linkTo(['category' => 0, 'sale' => false])) ?>">Tất cả</a></li>
     <?php foreach ($categories as $c): ?>
         <li>
             <a class="kz-pill <?= $categoryId === (int)$c['id'] ? 'active' : '' ?>"
                href="<?= e($linkTo(['category' => (int)$c['id']])) ?>"><?= e($c['name']) ?></a>
         </li>
     <?php endforeach; ?>
+    <li>
+        <a class="kz-pill <?= $saleOnly ? 'active' : '' ?>"
+           href="<?= e($linkTo(['sale' => !$saleOnly])) ?>">
+            <i class="bi bi-fire"></i> Khuyến mãi
+        </a>
+    </li>
 </ul>
 
 <!-- Tìm theo tên và sắp xếp -->
 <form class="kz-toolbar row g-2 align-items-center mb-3" method="get" action="<?= e(url('products.php')) ?>">
     <?php if ($categoryId > 0): ?>
         <input type="hidden" name="category" value="<?= $categoryId ?>">
+    <?php endif; ?>
+    <?php if ($saleOnly): ?>
+        <input type="hidden" name="sale" value="1">
     <?php endif; ?>
     <div class="col-12 col-md">
         <input class="form-control" type="search" name="q" maxlength="100"
@@ -120,7 +135,7 @@ require __DIR__ . '/includes/header.php';
 </form>
 
 <p class="text-muted">
-    Tìm thấy <strong><?= $total ?></strong> sản phẩm<?php if ($q !== ''): ?> cho từ khóa “<strong><?= e($q) ?></strong>”<?php endif; ?><?php if ($categoryId > 0): ?> trong <strong><?= e($categoryNames[$categoryId]) ?></strong><?php endif; ?>.
+    Tìm thấy <strong><?= $total ?></strong> sản phẩm<?php if ($q !== ''): ?> cho từ khóa “<strong><?= e($q) ?></strong>”<?php endif; ?><?php if ($categoryId > 0): ?> trong <strong><?= e($categoryNames[$categoryId]) ?></strong><?php endif; ?><?php if ($saleOnly): ?> <strong>đang khuyến mãi</strong><?php endif; ?>.
     <?php if ($hasFilter): ?><a class="ms-1" href="<?= e(url('products.php')) ?>">Xóa bộ lọc</a><?php endif; ?>
 </p>
 

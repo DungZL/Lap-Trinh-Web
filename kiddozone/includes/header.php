@@ -119,26 +119,36 @@ $searchValue = ($currentPage === 'products.php' && is_string($_GET['q'] ?? null)
 </div>
 
 <!-- Menu danh mục -->
-<nav class="nav-category shadow-sm" aria-label="Danh mục sản phẩm">
+<nav class="navbar navbar-expand-lg nav-category shadow-sm py-0" aria-label="Danh mục sản phẩm">
     <div class="container">
-        <ul class="nav justify-content-center">
-            <li class="nav-item">
-                <a class="nav-link <?= $currentPage === 'index.php' ? 'active' : '' ?>" href="<?= e(url('index.php')) ?>">
-                    <i class="bi bi-house-door me-1"></i> Trang chủ
-                </a>
-            </li>
-            <?php foreach ($navCategories as $c): ?>
+        <span class="navbar-brand d-lg-none fs-6 fw-bold mb-0 py-2">
+            <i class="bi bi-grid me-1"></i> Danh mục sản phẩm
+        </span>
+        <button class="navbar-toggler my-1 border-0 shadow-none" type="button"
+                data-bs-toggle="collapse" data-bs-target="#kzNavCategory"
+                aria-controls="kzNavCategory" aria-expanded="false" aria-label="Mở menu danh mục">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse justify-content-center" id="kzNavCategory">
+            <ul class="navbar-nav flex-wrap justify-content-center">
                 <li class="nav-item">
-                    <a class="nav-link <?= $navCategoryId === (int)$c['id'] ? 'active' : '' ?>"
-                       href="<?= e(url('products.php?category=' . (int)$c['id'])) ?>"><?= e($c['name']) ?></a>
+                    <a class="nav-link <?= $currentPage === 'index.php' ? 'active' : '' ?>" href="<?= e(url('index.php')) ?>">
+                        <i class="bi bi-house-door me-1"></i> Trang chủ
+                    </a>
                 </li>
-            <?php endforeach; ?>
-            <li class="nav-item">
-                <a class="nav-link nav-sale <?= $navSale ? 'active' : '' ?>" href="<?= e(url('products.php?sale=1')) ?>">
-                    <i class="bi bi-fire"></i> Khuyến mãi
-                </a>
-            </li>
-        </ul>
+                <?php foreach ($navCategories as $c): ?>
+                    <li class="nav-item">
+                        <a class="nav-link <?= $navCategoryId === (int)$c['id'] ? 'active' : '' ?>"
+                           href="<?= e(url('products.php?category=' . (int)$c['id'])) ?>"><?= e($c['name']) ?></a>
+                    </li>
+                <?php endforeach; ?>
+                <li class="nav-item">
+                    <a class="nav-link nav-sale <?= $navSale ? 'active' : '' ?>" href="<?= e(url('products.php?sale=1')) ?>">
+                        <i class="bi bi-fire"></i> Khuyến mãi
+                    </a>
+                </li>
+            </ul>
+        </div>
     </div>
 </nav>
 

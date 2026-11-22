@@ -183,19 +183,3 @@ body {
     font-size: 11px;
     z-index: 2;
 }
-
-
-.product-image-remove:hover {
-    background: #b02a37;
-}
-
-.product-main-label {
-    position: absolute;
-    bottom: 6px;
-    left: 6px;
-    background: #198754;
-    color: white;
-    font-size: 11px;
-    padding: 3px 7px;
-    border-radius: 5px;
-}

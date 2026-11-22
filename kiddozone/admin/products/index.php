@@ -153,7 +153,7 @@ require __DIR__ . '/../admin_header.php';
                         <td><?= e($product['category_name']) ?></td>
 
                         <td>
-                            <?php if ($product['sale_price'] !== null): ?>
+                            <?php if ($product['sale_price'] !== null && (float)$product['sale_price'] > 0 && (float)$product['sale_price'] < (float)$product['price']): ?>
                                 <div class="text-danger fw-bold">
                                     <?= e(format_price($product['sale_price'])) ?>
                                 </div>

@@ -1,4 +1,3 @@
-
 <?php
 require_once __DIR__ . '/../../includes/init.php';
 require_admin();
@@ -337,7 +336,7 @@ tinymce.init({
     license_key: 'gpl'
 });
 </script>
-<script src="<?= e(url('assets/js/product-upload.js')) ?>?v=5"></script>
+<script src="<?= e(url('assets/js/product-upload.js')) ?>?v=6"></script>
 
 <script>
 document.addEventListener('DOMContentLoaded', function () {
