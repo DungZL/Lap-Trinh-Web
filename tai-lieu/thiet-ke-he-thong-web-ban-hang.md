@@ -2,7 +2,7 @@
 
 Môn: Lập trình Web. Chủ đề: Website bán hàng cơ bản (đồ chơi trẻ em).
 
-Công nghệ: PHP 8 + MySQL (backend), HTML5 + Bootstrap 5 + JavaScript thuần (frontend).
+Công nghệ: PHP 8 + MySQL (backend), HTML5 + Tailwind CSS 4 + Alpine.js + GSAP + JavaScript thuần (frontend).
 
 Nhóm gồm 5 thành viên: Đỗ Hùng Mạnh (trưởng nhóm), Phạm Minh Quân, Lê Thanh, Trần Hoàng Duy, Hoàng Liêm.
 
@@ -12,10 +12,10 @@ Nhóm gồm 5 thành viên: Đỗ Hùng Mạnh (trưởng nhóm), Phạm Minh Qu
 
 KiddoZone là website bán đồ chơi trẻ em (đồ chơi giáo dục, lắp ráp, búp bê và thú bông, xe và mô hình, đồ chơi vận động), gồm hai phần:
 
-- **Trang người dùng:** xem, tìm kiếm, lọc sản phẩm, xem lại sản phẩm đã xem gần đây, quản lý giỏ hàng, đặt hàng, xem lịch sử đơn hàng, đánh giá sản phẩm đã mua, lưu sản phẩm yêu thích.
-- **Trang quản trị (Admin):** quản lý danh mục, sản phẩm, đơn hàng, người dùng, đánh giá và xem thống kê.
+- **Trang người dùng:** xem, tìm kiếm tức thì, lọc sản phẩm (danh mục, độ tuổi, khoảng giá, khuyến mãi), trợ lý chọn quà, flash sale đếm ngược, xem nhanh sản phẩm, xem lại sản phẩm đã xem gần đây, quản lý giỏ hàng (ngăn kéo AJAX), áp mã giảm giá, đặt hàng (COD và chuyển khoản VietQR), xem lịch sử đơn hàng theo dòng thời gian, đánh giá sản phẩm đã mua, lưu sản phẩm yêu thích và chuyển chế độ sáng/tối.
+- **Trang quản trị (Admin):** dashboard thống kê, biểu đồ doanh thu/trạng thái đơn và cảnh báo sắp hết hàng; quản lý danh mục, sản phẩm (nhiều ảnh, TinyMCE, độ tuổi, flash sale), mã giảm giá, đơn hàng (dòng thời gian, xuất CSV, in hóa đơn), người dùng, đánh giá và chuông thông báo đơn hàng mới.
 
-**Phạm vi:** thanh toán chỉ có COD và chuyển khoản (ghi nhận thủ công). Website không làm cổng thanh toán online, gửi email và mã giảm giá.
+**Phạm vi:** thanh toán hỗ trợ COD và chuyển khoản ngân hàng qua mã VietQR (đối soát thủ công). Website không tích hợp cổng thanh toán trực tuyến tự động (webhook/IPN) và không gửi email tự động.
 
 ### 1.2. Đối chiếu với yêu cầu của đề
 
@@ -23,17 +23,18 @@ KiddoZone là website bán đồ chơi trẻ em (đồ chơi giáo dục, lắp 
 |---|---|
 | Backend PHP + MySQL | PHP 8 thuần, kết nối MySQL qua PDO |
 | Có trang người dùng và trang Admin | Thư mục gốc cho khách hàng, thư mục `admin/` cho quản trị |
-| Giao diện đẹp, hiện đại, responsive | Bootstrap 5 |
-| CRUD đầy đủ | CRUD danh mục, sản phẩm, người dùng; quản lý đơn hàng |
+| Giao diện đẹp, hiện đại, responsive | Tailwind CSS 4 (bộ màu riêng, chế độ sáng/tối), Alpine.js, hiệu ứng GSAP |
+| CRUD đầy đủ | CRUD danh mục, sản phẩm, mã giảm giá, người dùng; quản lý đơn hàng và đánh giá |
 | Đăng nhập, đăng xuất, phân quyền | Session, mật khẩu băm, 2 vai trò `admin` và `customer` |
-| Tính năng nâng cao | Phân trang, upload nhiều ảnh, editor TinyMCE cho mô tả sản phẩm, đánh giá sản phẩm, danh sách yêu thích, sản phẩm đã xem gần đây, giỏ hàng lưu theo tài khoản |
+| Tính năng nâng cao | Phân trang, upload nhiều ảnh, editor TinyMCE cho mô tả sản phẩm, đánh giá sản phẩm, danh sách yêu thích, sản phẩm đã xem gần đây, giỏ hàng lưu theo tài khoản (F14, F16–F20), cùng nhóm nâng cao F21–F33 (giỏ hàng ngăn kéo AJAX, tìm kiếm tức thì, lọc độ tuổi & khoảng giá, trợ lý chọn quà, flash sale đếm ngược, mã giảm giá, VietQR, dòng thời gian đơn hàng, xem nhanh, chế độ tối, cảnh báo sắp hết hàng, xuất CSV/in hóa đơn, chuông thông báo đơn mới) |
 
 ### 1.3. Công cụ
 
 | Thành phần | Lựa chọn |
 |---|---|
-| Frontend | HTML5, Bootstrap 5.3 (CDN), Bootstrap Icons, JavaScript thuần |
-| Editor, biểu đồ | TinyMCE 6, Chart.js 4 (CDN) |
+| Frontend | HTML5, Tailwind CSS 4 (build bằng Tailwind CLI), Alpine.js 3, GSAP 3, bộ icon Phosphor, JavaScript thuần |
+| Editor, biểu đồ | TinyMCE 8 (nội bộ tại `assets/vendor/tinymce/`), Chart.js 4 (CDN) |
+| Thanh toán QR | Ảnh VietQR (img.vietqr.io) sinh theo số tiền và mã đơn |
 | Môi trường chạy | XAMPP (Apache + MariaDB/MySQL), phpMyAdmin |
 | Quản lý mã nguồn | Git + GitHub |
 | Vẽ sơ đồ | draw.io |
@@ -75,6 +76,19 @@ KiddoZone là website bán đồ chơi trẻ em (đồ chơi giáo dục, lắp 
 | F18 | Sản phẩm đã xem gần đây | Tất cả | P2 |
 | F19 | Giỏ hàng lưu theo tài khoản, gộp giỏ khi đăng nhập | Khách hàng | P2 |
 | F20 | Quản lý đánh giá: xem, ẩn/hiện, xóa | Admin | P2 |
+| F21 | Giỏ hàng dạng ngăn kéo trượt, thêm vào giỏ không tải lại trang (AJAX) | Tất cả | P2 |
+| F22 | Tìm kiếm gợi ý tức thì khi gõ (có ảnh, giá, điều hướng bằng phím) | Tất cả | P2 |
+| F23 | Lọc theo độ tuổi và thanh trượt khoảng giá | Tất cả | P2 |
+| F24 | Trợ lý chọn quà: 3 câu hỏi (tuổi, sở thích, ngân sách) rồi gợi ý sản phẩm | Tất cả | P2 |
+| F25 | Flash sale có giá riêng, thời gian bắt đầu/kết thúc và đồng hồ đếm ngược | Tất cả, Admin | P2 |
+| F26 | Mã giảm giá (phần trăm hoặc số tiền, đơn tối thiểu, giới hạn lượt, thời hạn) | Khách hàng, Admin | P2 |
+| F27 | Mã QR chuyển khoản VietQR tự sinh theo số tiền và mã đơn | Khách hàng | P2 |
+| F28 | Theo dõi đơn hàng dạng dòng thời gian | Khách hàng, Admin | P2 |
+| F29 | Xem nhanh sản phẩm trong cửa sổ nổi | Tất cả | P2 |
+| F30 | Chế độ tối (lưu lựa chọn trên trình duyệt) | Tất cả | P2 |
+| F31 | Cảnh báo sản phẩm sắp hết hàng trên dashboard | Admin | P2 |
+| F32 | Xuất danh sách đơn ra CSV (mở bằng Excel), in hóa đơn | Admin | P2 |
+| F33 | Chuông thông báo đơn hàng mới (tự kiểm tra mỗi 20 giây) | Admin | P2 |
 
 ### 2.3. Biểu đồ use case
 
@@ -107,8 +121,9 @@ Website dùng mô hình client-server, PHP render HTML phía server:
 
 1. Trình duyệt gửi request đến một file PHP (ví dụ `products.php?category=2&page=2`).
 2. File PHP nạp `includes/init.php` (session, kết nối CSDL, hàm dùng chung), kiểm tra quyền.
-3. PHP truy vấn MySQL bằng PDO, sau đó in HTML (Bootstrap) trả về trình duyệt.
-4. JavaScript thuần chỉ xử lý tương tác nhỏ: kiểm tra form, xem trước ảnh, hộp xác nhận xóa.
+3. PHP truy vấn MySQL bằng PDO, sau đó in HTML (Tailwind CSS) trả về trình duyệt.
+4. Alpine.js và JavaScript (`assets/js/app.js`, `assets/js/admin.js`) xử lý tương tác: giỏ hàng trượt, tìm kiếm tức thì, xem nhanh, trợ lý chọn quà, đếm ngược, chuông thông báo. Các tương tác này gọi các file JSON trong `api/` và `admin/api/`. GSAP tạo hiệu ứng chuyển động (hiện dần khi cuộn, sản phẩm bay vào giỏ, pháo giấy).
+5. Mọi form vẫn gửi được theo cách thường khi JavaScript bị tắt (ví dụ nút "Thêm vào giỏ" gửi tới `cart.php`).
 
 Mỗi trang có phần xử lý (đọc dữ liệu, xử lý form) ở đầu file và phần hiển thị HTML ở cuối file.
 
@@ -117,19 +132,23 @@ Mỗi trang có phần xử lý (đọc dữ liệu, xử lý form) ở đầu f
 ```
 kiddozone/
 ├── index.php          Trang chủ
-├── products.php       Danh sách sản phẩm
+├── products.php       Danh sách sản phẩm (lọc danh mục, tuổi, giá)
 ├── product.php        Chi tiết sản phẩm
-├── cart.php           Giỏ hàng
-├── checkout.php       Đặt hàng
+├── gift-finder.php    Trợ lý chọn quà
+├── cart.php           Giỏ hàng (+ mã giảm giá)
+├── checkout.php       Đặt hàng (+ VietQR)
 ├── login.php, register.php, logout.php
-├── account/           Hồ sơ, đơn hàng của tôi, yêu thích
-├── admin/             Dashboard, categories/, products/,
-│                      orders/, users/, reviews/
-├── includes/          init.php, db.php, functions.php,
-│                      auth.php, header.php, footer.php
-├── assets/            css/, js/, img/
-├── uploads/           Ảnh sản phẩm do Admin tải lên
-└── database/          kiddozone.sql (bảng + dữ liệu mẫu)
+├── 404.php, .htaccess Trang 404 thân thiện và quy tắc điều hướng
+├── api/               JSON cho JS: cart, search, product, products, coupon
+├── account/           Hồ sơ, đơn hàng của tôi, yêu thích, gửi đánh giá
+├── admin/             Dashboard, categories/, products/, orders.php, orders/ (export, invoice),
+│                      coupons/, users/, reviews/, api/notifications.php
+├── includes/          init, config, db, functions, auth, store (giỏ, mã giảm giá,
+│                      đơn hàng), head, header, footer, product_card...
+├── assets/            src/app.css (nguồn Tailwind), css/app.css (đã build),
+│                      js/app.js, js/admin.js, js/select.js, img/placeholder.svg (ảnh mặc định), vendor/tinymce/
+├── uploads/           Ảnh sản phẩm (tự đổi tên & tự nén <= 2MB khi upload, .htaccess chặn chạy PHP)
+└── database/          kiddozone.sql, kiddozone_infinityfree.sql (12 bảng + dữ liệu mẫu)
 ```
 
 ### 3.3. Biểu đồ lớp
@@ -142,14 +161,17 @@ Biểu đồ lớp mô tả các đối tượng nghiệp vụ chính. `User` l�
 
 | Nguy cơ | Biện pháp |
 |---|---|
-| SQL Injection | Dùng prepared statement của PDO cho mọi truy vấn |
-| XSS | In dữ liệu ra HTML qua `htmlspecialchars()` |
+| SQL Injection | Dùng prepared statement của PDO cho mọi truy vấn (`ATTR_EMULATE_PREPARES => false`), ép kiểu `(int)` cho `LIMIT`/`OFFSET`, thoát ký tự `LIKE`, danh sách trắng `ORDER BY` |
+| XSS | In dữ liệu ra HTML qua `e()` (`htmlspecialchars()`); mô tả TinyMCE được lọc qua `sanitize_description_html()` (`DOMDocument` giữ thẻ/thuộc tính an toàn, loại bỏ `<script>`, sự kiện `on*`, `javascript:`, `data:`) |
 | Lộ mật khẩu | Lưu mật khẩu bằng `password_hash()`, kiểm tra bằng `password_verify()` |
-| Vượt quyền | Trang trong `admin/` kiểm tra `role = 'admin'` ở dòng đầu; khách chỉ xem được đơn của mình |
-| Upload độc hại | Chỉ nhận JPG/PNG/WEBP, tối đa 2MB mỗi ảnh, đổi tên file ngẫu nhiên |
+| Vượt quyền & Open Redirect | Trang trong `admin/` gọi `require_admin()`, trang khách gọi `require_customer()`; khách chỉ xem được đơn của mình; `safe_redirect_target()` chỉ nhận đường dẫn nội bộ hợp lệ |
+| Vô hiệu hóa tài khoản tức thì | `current_user()` đối chiếu `users.status = 1` ở mỗi request để đăng xuất ngay tài khoản bị khóa |
+| Upload độc hại | `save_uploaded_image()` kiểm tra MIME thực bằng `finfo`, chỉ nhận JPG/PNG/WEBP, tối đa 2MB mỗi ảnh, đổi tên file ngẫu nhiên; `uploads/.htaccess` chặn chạy PHP |
 | Cookie bị sửa | Cookie `recently_viewed` chỉ được đọc thành danh sách số nguyên, tối đa 8 id; truy vấn vẫn dùng prepared statement |
-| CSRF | Mọi form POST (đăng nhập, đặt hàng, thêm/sửa/xóa trong Admin) chứa token ngẫu nhiên lưu trong session, server kiểm tra trước khi xử lý; thao tác xóa không dùng link GET |
-| Chiếm phiên (session fixation) | Gọi `session_regenerate_id(true)` sau khi đăng nhập thành công; hủy session khi đăng xuất |
+| CSRF | Mọi form POST và API (`api/`, `admin/api/`) đều kiểm tra token CSRF dùng `hash_equals()` (sai trả HTTP 403); thao tác xóa không dùng link GET |
+| Chiếm phiên & Header | Gọi `session_regenerate_id(true)` sau khi đăng nhập; cookie session `httponly` + `SameSite=Lax` + `secure` khi dùng HTTPS; `init.php` gửi `X-Content-Type-Options`, `X-Frame-Options`, `Referrer-Policy` |
+| Chống CSV Injection | Khi xuất đơn CSV, ô bắt đầu bằng `=`, `+`, `-`, `@`, `\t`, `\r` được thêm dấu `'` ở đầu để Excel không thực thi công thức |
+| Tranh chấp tồn kho / mã giảm giá | Giao dịch đặt hàng khóa dòng sản phẩm và mã giảm giá bằng `FOR UPDATE` trong transaction trước khi trừ tồn kho và tăng `used_count` |
 
 ## 4. Thiết kế cơ sở dữ liệu
 
@@ -176,18 +198,20 @@ Quan hệ chính:
 |---|---|---|
 | `users` | id, full_name, email, password, phone, address, role, status, created_at | `email` không trùng; `role` là `admin` hoặc `customer`; `status = 0` là bị khóa |
 | `categories` | id, name, description, status | |
-| `products` | id, category_id, name, price, sale_price, stock, description, is_featured, status, created_at | `description` lưu HTML từ TinyMCE |
+| `products` | id, category_id, name, price, sale_price, flash_sale_price, flash_sale_start, flash_sale_end, stock, age_min, age_max, description, is_featured, status, created_at | `description` lưu HTML từ TinyMCE; giá đang bán ưu tiên flash sale (khi đang diễn ra), rồi tới `sale_price` |
 | `product_images` | id, product_id, image_path, is_main | `is_main = 1` là ảnh đại diện |
-| `orders` | id, code, user_id, receiver_name, receiver_phone, shipping_address, note, payment_method, total_amount, status, created_at | `code` dạng `DH0001` |
+| `orders` | id, code, user_id, receiver_name, receiver_phone, shipping_address, note, payment_method, coupon_code, discount_amount, total_amount, status, admin_seen, created_at | `code` dạng `DH0001`; `total_amount` đã trừ giảm giá; `admin_seen = 0` là đơn mới Admin chưa xem |
 | `order_items` | id, order_id, product_id, product_name, price, quantity | `product_id` được để NULL khi sản phẩm bị xóa |
 | `carts` | id, user_id, created_at, updated_at | `user_id` không trùng |
 | `cart_items` | id, cart_id, product_id, quantity | Không trùng cặp `cart_id`, `product_id` |
 | `reviews` | id, user_id, product_id, rating, comment, status, created_at | `rating` từ 1 đến 5; `status = 0` là bị ẩn; không trùng cặp `user_id`, `product_id` |
 | `wishlists` | id, user_id, product_id, created_at | Không trùng cặp `user_id`, `product_id` |
+| `coupons` | id, code, description, type, value, min_order, max_discount, usage_limit, used_count, starts_at, ends_at, status | `type` là `percent` hoặc `fixed`; `code` không trùng |
+| `order_status_history` | id, order_id, status, created_at | Mỗi lần đổi trạng thái thêm 1 dòng, dùng cho dòng thời gian đơn hàng |
 
 Trạng thái đơn hàng: `pending` (Chờ xác nhận) → `confirmed` (Đã xác nhận) → `shipping` (Đang giao) → `completed` (Hoàn thành). Đơn có thể chuyển sang `cancelled` (Đã hủy) khi chưa giao; khi hủy thì cộng lại tồn kho.
 
-Dữ liệu mẫu: 1 tài khoản admin (`admin@kiddozone.test` / `Admin@123`), 3 tài khoản khách, 5 danh mục (Đồ chơi giáo dục, Lắp ráp và xếp hình, Búp bê và thú bông, Xe và mô hình, Đồ chơi vận động), khoảng 20 sản phẩm, 10 đơn hàng, khoảng 10 đánh giá.
+Dữ liệu mẫu: 1 tài khoản admin (`admin@kiddozone.test` / `Admin@123`), 3 tài khoản khách (`khach1`–`khach3@kiddozone.test` / `Khach@123`), 5 danh mục (Đồ chơi giáo dục, Lắp ráp và xếp hình, Búp bê và thú bông, Xe và mô hình, Đồ chơi vận động), 20 sản phẩm (kèm 20 ảnh sản phẩm trong `uploads/`, sản phẩm chưa có ảnh dùng 1 ảnh mặc định `assets/img/placeholder.svg`, và 4 sản phẩm đang flash sale), 3 mã giảm giá (`KIDDO10`, `CHAOBE50`, `FLASH20`), 10 đơn hàng (kèm lịch sử trạng thái), 7 đánh giá và 4 mục yêu thích.
 
 ## 5. Luồng xử lý chính
 
@@ -220,7 +244,7 @@ Phía server đọc giỏ hàng của khách từ CSDL, sau đó tạo đơn tro
 - **Phân trang:** 12 sản phẩm mỗi trang phía khách, 10 dòng mỗi trang trong Admin. Dùng `LIMIT ... OFFSET ...`, link phân trang giữ nguyên bộ lọc.
 - **Upload nhiều ảnh:** form sản phẩm dùng `<input type="file" name="images[]" multiple>`, JavaScript hiện ảnh xem trước; khi sửa sản phẩm có thể chọn ảnh chính và xóa từng ảnh.
 - **Editor:** TinyMCE cho ô mô tả chi tiết sản phẩm.
-- **Dashboard:** tổng doanh thu (đơn hoàn thành), số đơn chờ xác nhận, số sản phẩm, số khách hàng; biểu đồ doanh thu 7 ngày bằng Chart.js.
+- **Dashboard:** tổng doanh thu (đơn hoàn thành), tổng đơn hàng (kèm số đơn chờ xác nhận), số sản phẩm (kèm số sản phẩm sắp hết), số khách hàng; biểu đồ doanh thu theo tháng trong năm và 7 ngày gần đây, biểu đồ tròn trạng thái đơn bằng Chart.js; cảnh báo sản phẩm sắp hết hàng (≤ 5) và top 5 sản phẩm bán chạy.
 - **Đánh giá sản phẩm:** chỉ khách có đơn `completed` chứa sản phẩm mới đánh giá được; gửi lại thì cập nhật đánh giá cũ. Điểm trung bình tính bằng `AVG(rating)` trên các đánh giá đang hiển thị, hiện ở thẻ và trang chi tiết sản phẩm. Admin có thể ẩn/hiện hoặc xóa đánh giá.
 - **Danh sách yêu thích:** nút trái tim ở thẻ và trang chi tiết sản phẩm; khách vãng lai bấm thì chuyển sang đăng nhập. Danh sách xem trong `account/`.
 - **Sản phẩm đã xem gần đây:** cookie `recently_viewed` lưu tối đa 8 id sản phẩm, mới nhất đứng đầu, giữ 30 ngày; hiển thị ở trang chủ và trang chi tiết. Sản phẩm đã ẩn hoặc đã xóa thì bỏ qua.
@@ -257,3 +281,15 @@ Phía server đọc giỏ hàng của khách từ CSDL, sau đó tạo đơn tro
 | TC26 | Đăng nhập cùng tài khoản trên trình duyệt khác | Giỏ hàng vẫn còn nguyên |
 | TC27 | Đặt hàng thất bại vì không đủ hàng | Không có đơn mới, giỏ hàng vẫn còn nguyên |
 | TC28 | Admin xóa người dùng đã có đơn hàng | Báo không thể xóa, chỉ được khóa tài khoản |
+| TC29 | Bấm "+" trên thẻ sản phẩm | Không tải lại trang, ngăn kéo giỏ hàng mở ra, số trên biểu tượng giỏ tăng |
+| TC30 | Gõ "xe" vào ô tìm kiếm | Hiện tối đa 6 gợi ý có ảnh, giá; phím mũi tên và Enter mở đúng sản phẩm |
+| TC31 | Lọc độ tuổi 3 - 5 và khoảng giá 100.000đ - 300.000đ rồi sang trang 2 | Chỉ hiện sản phẩm phù hợp, bộ lọc được giữ nguyên |
+| TC32 | Sản phẩm có flash sale đang diễn ra | Giá flash được dùng ở thẻ sản phẩm, giỏ hàng và khi đặt hàng; hết giờ thì về giá thường |
+| TC33 | Nhập mã chưa đạt đơn tối thiểu, mã hết hạn, mã hết lượt | Báo đúng lý do, không giảm giá |
+| TC34 | Đặt hàng với mã KIDDO10 | Đơn lưu mã và số tiền giảm, `used_count` tăng 1 |
+| TC35 | Đặt đơn chuyển khoản | Trang thành công và trang chi tiết đơn hiện mã VietQR đúng số tiền, nội dung là mã đơn |
+| TC36 | Admin chuyển đơn qua các trạng thái | Dòng thời gian hiện đủ mốc kèm thời gian |
+| TC37 | Khách đặt đơn mới khi Admin đang mở trang quản trị | Trong 20 giây chuông thông báo rung và tăng số; mở đơn thì hết chấm đỏ |
+| TC38 | Bấm "Xuất Excel" | Tải file CSV mở được bằng Excel, tiếng Việt hiển thị đúng |
+| TC39 | Bật chế độ tối rồi tải lại trang | Giữ chế độ tối, không bị nháy màu sáng |
+| TC40 | Gửi yêu cầu API giỏ hàng với `csrf_token` sai | Trả HTTP 403, giỏ hàng không đổi |

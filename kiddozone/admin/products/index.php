@@ -45,6 +45,11 @@ $products = db_query(
         p.stock,
         p.status,
         p.is_featured,
+        p.age_min,
+        p.age_max,
+        p.flash_sale_price,
+        p.flash_sale_start,
+        p.flash_sale_end,
         c.name AS category_name,
         (
             SELECT pi.image_path
@@ -62,172 +67,81 @@ $products = db_query(
     $params
 )->fetchAll();
 
+$pageSubtitle = 'Tổng cộng ' . $total . ' sản phẩm';
+$pageActions = '<a href="' . e(url('admin/products/create.php')) . '" class="btn btn-primary"><i class="ph-bold ph-plus" aria-hidden="true"></i> Thêm sản phẩm</a>';
 require __DIR__ . '/../admin_header.php';
 ?>
 
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <h2 class="fw-bold mb-0">Quản lý sản phẩm</h2>
-
-    <a href="create.php" class="btn btn-primary">
-        <i class="bi bi-plus-circle"></i>
-        Thêm sản phẩm
-    </a>
-</div>
-
-<form method="get" action="<?= e(url('admin/products/index.php')) ?>" class="row g-2 mb-4">
-    <div class="col-md-5">
-        <input type="search" name="q" class="form-control" maxlength="100"
-               value="<?= e($search) ?>" placeholder="Tìm theo tên sản phẩm">
-    </div>
-    <div class="col-md-3">
-        <select name="category" class="form-select" aria-label="Lọc danh mục">
+<div class="card">
+    <form method="get" action="<?= e(url('admin/products/index.php')) ?>" class="flex flex-wrap gap-2 border-b border-ink-100 p-4 dark:border-ink-800">
+        <div class="relative min-w-60 flex-1">
+            <i class="ph-bold ph-magnifying-glass absolute top-1/2 left-4 -translate-y-1/2 text-muted" aria-hidden="true"></i>
+            <input type="search" name="q" class="input pl-11" maxlength="100" value="<?= e($search) ?>" placeholder="Tìm theo tên sản phẩm" aria-label="Tìm theo tên sản phẩm">
+        </div>
+        <select name="category" class="select w-auto" aria-label="Lọc danh mục" data-autosubmit>
             <option value="">Tất cả danh mục</option>
             <?php foreach ($categories as $cat): ?>
-                <option value="<?= (int)$cat['id'] ?>" <?= $categoryId === (int)$cat['id'] ? 'selected' : '' ?>>
-                    <?= e($cat['name']) ?>
-                </option>
+                <option value="<?= (int)$cat['id'] ?>" <?= $categoryId === (int)$cat['id'] ? 'selected' : '' ?>><?= e($cat['name']) ?></option>
             <?php endforeach; ?>
         </select>
-    </div>
-    <div class="col-md-auto">
-        <button type="submit" class="btn btn-primary">
-            <i class="bi bi-search"></i> Tìm kiếm
-        </button>
+        <button type="submit" class="btn btn-primary"><i class="ph-bold ph-magnifying-glass" aria-hidden="true"></i> Tìm kiếm</button>
         <?php if ($search !== '' || $categoryId > 0): ?>
-            <a href="<?= e(url('admin/products/index.php')) ?>" class="btn btn-outline-secondary">Xóa lọc</a>
+            <a href="<?= e(url('admin/products/index.php')) ?>" class="btn btn-ghost">Xóa lọc</a>
         <?php endif; ?>
-    </div>
-</form>
+    </form>
 
-<div class="card shadow-sm border-0">
-    <div class="card-body table-responsive">
-        <table class="table table-hover align-middle">
-            <thead class="table-light">
-                <tr>
-                    <th>ID</th>
-                    <th>Ảnh</th>
-                    <th>Tên sản phẩm</th>
-                    <th>Danh mục</th>
-                    <th>Giá</th>
-                    <th>Tồn kho</th>
-                    <th>Trạng thái</th>
-                    <th>Thao tác</th>
-                </tr>
-            </thead>
-
+    <div class="overflow-x-auto p-2">
+        <table class="table-kz">
+            <thead><tr><th>Sản phẩm</th><th>Danh mục</th><th>Giá</th><th>Tồn kho</th><th>Trạng thái</th><th class="text-right">Thao tác</th></tr></thead>
             <tbody>
                 <?php foreach ($products as $product): ?>
-                    <?php
-                    $path = $product['image_path'];
-
-                    $imageUrl = !$path
-                        ? url('assets/img/placeholder.svg')
-                        : (str_starts_with($path, 'assets/')
-                            ? url($path)
-                            : url('uploads/' . $path));
-                    ?>
-
+                    <?php $final = effective_price($product); $flash = flash_active($product); $stock = (int)$product['stock']; ?>
                     <tr>
-                        <td><?= (int)$product['id'] ?></td>
-
                         <td>
-                            <img
-                                src="<?= e($imageUrl) ?>"
-                                alt="<?= e($product['name']) ?>"
-                                width="65"
-                                height="65"
-                                style="object-fit:cover;border-radius:6px"
-                            >
-                        </td>
-
-                        <td>
-                            <strong><?= e($product['name']) ?></strong>
-
-                            <?php if ((int)$product['is_featured'] === 1): ?>
-                                <span class="badge bg-info">
-                                    Nổi bật
-                                </span>
-                            <?php endif; ?>
-                        </td>
-
-                        <td><?= e($product['category_name']) ?></td>
-
-                        <td>
-                            <?php if ($product['sale_price'] !== null): ?>
-                                <div class="text-danger fw-bold">
-                                    <?= e(format_price($product['sale_price'])) ?>
+                            <div class="flex items-center gap-3">
+                                <img src="<?= e(product_image_url($product['image_path'])) ?>" alt="" class="size-14 rounded-2xl object-cover" data-fallback="<?= e(url('assets/img/placeholder.svg')) ?>">
+                                <div>
+                                    <b class="block"><?= e($product['name']) ?></b>
+                                    <span class="flex flex-wrap gap-1 pt-1">
+                                        <span class="text-xs text-muted">#<?= (int)$product['id'] ?> · <?= e(age_label((int)$product['age_min'], (int)$product['age_max'])) ?></span>
+                                        <?php if ((int)$product['is_featured'] === 1): ?><span class="badge badge-sun"><i class="ph-fill ph-star" aria-hidden="true"></i> Nổi bật</span><?php endif; ?>
+                                        <?php if ($flash): ?><span class="badge badge-coral"><i class="ph-fill ph-lightning" aria-hidden="true"></i> Flash</span><?php endif; ?>
+                                    </span>
                                 </div>
-                                <small class="text-muted text-decoration-line-through">
-                                    <?= e(format_price($product['price'])) ?>
-                                </small>
-                            <?php else: ?>
-                                <?= e(format_price($product['price'])) ?>
-                            <?php endif; ?>
+                            </div>
                         </td>
-
-                        <td><?= (int)$product['stock'] ?></td>
-
+                        <td class="text-ink-500"><?= e($product['category_name']) ?></td>
+                        <td class="whitespace-nowrap">
+                            <b class="block <?= $final < (float)$product['price'] ? 'text-price' : '' ?>"><?= e(format_price($final)) ?></b>
+                            <?php if ($final < (float)$product['price']): ?><span class="text-xs text-muted line-through"><?= e(format_price($product['price'])) ?></span><?php endif; ?>
+                        </td>
                         <td>
-                            <?php if ((int)$product['status'] === 1): ?>
-                                <span class="badge bg-success">
-                                    Hiển thị
-                                </span>
+                            <?php if ($stock === 0): ?>
+                                <span class="badge bg-coral-600 text-white">Hết hàng</span>
+                            <?php elseif ($stock <= LOW_STOCK_THRESHOLD): ?>
+                                <span class="badge badge-sun"><i class="ph-fill ph-warning" aria-hidden="true"></i> <?= $stock ?></span>
                             <?php else: ?>
-                                <span class="badge bg-secondary">
-                                    Đang ẩn
-                                </span>
+                                <b><?= $stock ?></b>
                             <?php endif; ?>
                         </td>
-
-                        <td class="text-nowrap">
-                            <a
-                                href="edit.php?id=<?= (int)$product['id'] ?>"
-                                class="btn btn-warning btn-sm"
-                            >
-                                <i class="bi bi-pencil-square"></i>
-                                Sửa
-                            </a>
-
-                            <form
-                                action="delete.php"
-                                method="post"
-                                class="d-inline"
-                                onsubmit="return confirm('Bạn có chắc muốn xóa sản phẩm này?')"
-                            >
+                        <td><?= (int)$product['status'] === 1 ? '<span class="badge badge-mint">Hiển thị</span>' : '<span class="badge badge-ink">Đang ẩn</span>' ?></td>
+                        <td class="text-right whitespace-nowrap">
+                            <a href="<?= e(url('admin/products/edit.php?id=' . (int)$product['id'])) ?>" class="btn btn-ghost btn-sm"><i class="ph-bold ph-pencil-simple" aria-hidden="true"></i> Sửa</a>
+                            <form action="<?= e(url('admin/products/delete.php')) ?>" method="post" class="inline" data-confirm="Bạn có chắc muốn xóa sản phẩm này?">
                                 <?= csrf_field() ?>
-
-                                <input
-                                    type="hidden"
-                                    name="id"
-                                    value="<?= (int)$product['id'] ?>"
-                                >
-
-                                <button
-                                    type="submit"
-                                    class="btn btn-danger btn-sm"
-                                >
-                                    <i class="bi bi-trash"></i>
-                                    Xóa
-                                </button>
+                                <input type="hidden" name="id" value="<?= (int)$product['id'] ?>">
+                                <button type="submit" class="btn btn-danger-ghost btn-sm" aria-label="Xóa <?= e($product['name']) ?>"><i class="ph-bold ph-trash" aria-hidden="true"></i></button>
                             </form>
                         </td>
                     </tr>
                 <?php endforeach; ?>
-
                 <?php if (!$products): ?>
-                    <tr>
-                        <td colspan="8" class="text-center text-muted py-4">
-                            Chưa có sản phẩm nào.
-                        </td>
-                    </tr>
+                    <tr><td colspan="6" class="py-10 text-center text-muted">Chưa có sản phẩm nào.</td></tr>
                 <?php endif; ?>
             </tbody>
         </table>
     </div>
 </div>
-
-<div class="mt-4">
-    <?= render_pagination($page, $pages) ?>
-</div>
+<?= render_pagination($page, $pages) ?>
 
 <?php require __DIR__ . '/../admin_footer.php'; ?>

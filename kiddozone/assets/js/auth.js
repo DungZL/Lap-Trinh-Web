@@ -17,16 +17,16 @@ if (loginForm) {
             if (password.type === "password") {
                 password.type = "text";
                 if (eyeIcon) {
-                    eyeIcon.classList.remove("fa-eye-slash");
-                    eyeIcon.classList.add("fa-eye");
+                    eyeIcon.classList.remove("ph-eye-slash");
+                    eyeIcon.classList.add("ph-eye");
                 } else {
                     togglePassword.textContent = "Ẩn";
                 }
             } else {
                 password.type = "password";
                 if (eyeIcon) {
-                    eyeIcon.classList.remove("fa-eye");
-                    eyeIcon.classList.add("fa-eye-slash");
+                    eyeIcon.classList.remove("ph-eye");
+                    eyeIcon.classList.add("ph-eye-slash");
                 } else {
                     togglePassword.textContent = "Hiện";
                 }
@@ -91,12 +91,12 @@ if (registerForm) {
         togglePassword.addEventListener("click", function () {
             if (password.type === "password") {
                 password.type = "text";
-                eyeIcon.classList.remove("fa-eye-slash");
-                eyeIcon.classList.add("fa-eye");
+                eyeIcon.classList.remove("ph-eye-slash");
+                eyeIcon.classList.add("ph-eye");
             } else {
                 password.type = "password";
-                eyeIcon.classList.remove("fa-eye");
-                eyeIcon.classList.add("fa-eye-slash");
+                eyeIcon.classList.remove("ph-eye");
+                eyeIcon.classList.add("ph-eye-slash");
             }
         });
     }
@@ -156,3 +156,14 @@ if (registerForm) {
         }
     });
 }
+
+// ==========================================
+// Gắn trạng thái lỗi cho ô nhập (aria-invalid) theo dòng lỗi aria-describedby
+// ==========================================
+document.querySelectorAll('small[id$="Error"]').forEach(function (msg) {
+    var input = document.querySelector('[aria-describedby~="' + msg.id + '"]');
+    if (!input) { return; }
+    new MutationObserver(function () {
+        input.setAttribute('aria-invalid', msg.textContent.trim() !== '' ? 'true' : 'false');
+    }).observe(msg, { childList: true, characterData: true, subtree: true });
+});

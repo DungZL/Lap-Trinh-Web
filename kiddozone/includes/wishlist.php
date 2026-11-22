@@ -42,7 +42,7 @@ function wishlist_remove(int $userId, int $productId): void
 }
 
 /**
- * In nút trái tim (là 1 form POST tới account/wishlist.php). Admin không thấy nút.
+ * In nút trái tim (là 1 form POST tới account/wishlist.php, JS gửi bằng fetch). Admin không thấy nút.
  * $withLabel = true: nút có chữ, dùng ở trang chi tiết; false: nút tròn nổi trên thẻ sản phẩm.
  */
 function render_wishlist_button(int $productId, bool $withLabel = false): void
@@ -54,16 +54,18 @@ function render_wishlist_button(int $productId, bool $withLabel = false): void
     $label  = $active ? 'Bỏ khỏi yêu thích' : 'Thêm vào yêu thích';
     // Sau khi bấm thì quay lại đúng trang và đúng thẻ sản phẩm đang xem.
     $back = strtok($_SERVER['REQUEST_URI'] ?? '/', '#') . '#product-' . $productId;
+    $btnClass = $withLabel
+        ? 'btn btn-ghost btn-lg'
+        : 'grid size-10 place-items-center rounded-full bg-white/90 text-xl shadow-soft backdrop-blur transition hover:scale-110 dark:bg-ink-900/90';
     ?>
-    <form method="post" action="<?= e(url('account/wishlist.php')) ?>"
-          class="kz-wish-form <?= $withLabel ? 'kz-wish-form-inline' : '' ?>">
+    <form method="post" action="<?= e(url('account/wishlist.php')) ?>" class="kz-wish-form">
         <?= csrf_field() ?>
         <input type="hidden" name="action" value="<?= $active ? 'remove' : 'add' ?>">
         <input type="hidden" name="product_id" value="<?= $productId ?>">
         <input type="hidden" name="redirect" value="<?= e($back) ?>">
-        <button type="submit" class="kz-wish-btn <?= $withLabel ? 'kz-wish-btn-label' : '' ?> <?= $active ? 'active' : '' ?>"
+        <button type="submit" class="kz-wish-btn <?= $btnClass ?> <?= $active ? 'is-active text-price' : 'text-muted hover:text-coral-400' ?>"
                 aria-pressed="<?= $active ? 'true' : 'false' ?>" aria-label="<?= e($label) ?>" title="<?= e($label) ?>">
-            <i class="bi <?= $active ? 'bi-heart-fill' : 'bi-heart' ?>"></i>
+            <i class="<?= $active ? 'ph-fill' : 'ph-bold' ?> ph-heart"></i>
             <?php if ($withLabel): ?><span><?= e($label) ?></span><?php endif; ?>
         </button>
     </form>

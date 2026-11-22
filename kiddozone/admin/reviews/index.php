@@ -1,4 +1,3 @@
-
 <?php
 require_once __DIR__ . '/../../includes/init.php';
 require_admin();
@@ -64,205 +63,60 @@ $reviews = db_query(
     $params
 )->fetchAll();
 
+$pageSubtitle = 'Ẩn hoặc xóa đánh giá không phù hợp';
 require __DIR__ . '/../admin_header.php';
 ?>
 
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <h2 class="fw-bold mb-0">
-        <i class="bi bi-star-fill text-warning"></i>
-        Quản lý đánh giá
-    </h2>
+<div class="mb-6 grid gap-4 sm:grid-cols-3">
+    <?php foreach ([['Tổng đánh giá', (int)$stats['total'], 'ph-chat-circle-dots', 'from-sun-400 to-coral-400'], ['Đang hiển thị', (int)$stats['visible_count'], 'ph-eye', 'from-mint-400 to-sky-400'], ['Đang ẩn', (int)$stats['hidden_count'], 'ph-eye-slash', 'from-ink-300 to-ink-400']] as [$label, $n, $icon, $grad]): ?>
+        <div data-reveal class="card flex items-center gap-4 p-5">
+            <span class="grid size-12 place-items-center rounded-2xl bg-gradient-to-br text-2xl text-white <?= $grad ?>"><i class="ph-fill <?= $icon ?>" aria-hidden="true"></i></span>
+            <div><p class="text-sm font-bold text-muted"><?= e($label) ?></p><p class="font-display text-3xl font-bold" data-count="<?= $n ?>"><?= $n ?></p></div>
+        </div>
+    <?php endforeach; ?>
 </div>
 
-<!-- Thống kê -->
-<div class="row g-3 mb-4">
-
-    <div class="col-md-4">
-        <div class="card shadow-sm border-0">
-            <div class="card-body">
-                <p class="text-muted mb-2">Tổng đánh giá</p>
-                <h3 class="fw-bold">
-                    <?= (int)$stats['total'] ?>
-                </h3>
-            </div>
-        </div>
+<div class="card overflow-hidden">
+    <div class="flex flex-wrap items-center gap-2 border-b border-ink-100 p-4 dark:border-ink-800">
+        <?php foreach (['all' => 'Tất cả', 'visible' => 'Hiển thị', 'hidden' => 'Đang ẩn'] as $key => $label): ?>
+            <a href="<?= e(url('admin/reviews/index.php' . ($key === 'all' ? '' : '?status=' . $key))) ?>"
+               class="rounded-full px-4 py-2 text-sm font-extrabold transition <?= $filter === $key ? 'bg-ink-900 text-white dark:bg-white dark:text-ink-900' : 'text-ink-500 hover:bg-ink-50 dark:hover:bg-ink-800' ?>"><?= e($label) ?></a>
+        <?php endforeach; ?>
     </div>
-
-    <div class="col-md-4">
-        <div class="card shadow-sm border-0">
-            <div class="card-body">
-                <p class="text-muted mb-2">Đang hiển thị</p>
-                <h3 class="fw-bold text-success">
-                    <?= (int)$stats['visible_count'] ?>
-                </h3>
-            </div>
-        </div>
-    </div>
-
-    <div class="col-md-4">
-        <div class="card shadow-sm border-0">
-            <div class="card-body">
-                <p class="text-muted mb-2">Đang ẩn</p>
-                <h3 class="fw-bold text-secondary">
-                    <?= (int)$stats['hidden_count'] ?>
-                </h3>
-            </div>
-        </div>
-    </div>
-
+    <ul class="divide-y divide-ink-100 dark:divide-ink-800">
+        <?php foreach ($reviews as $review): ?>
+            <li class="flex flex-wrap items-start gap-4 p-5 <?= (int)$review['status'] === 1 ? '' : 'bg-ink-50/60 dark:bg-ink-800/30' ?>">
+                <span class="grid size-11 shrink-0 place-items-center rounded-full bg-gradient-to-br from-sun-300 to-coral-300 font-extrabold text-ink-900"><?= e(mb_strtoupper(mb_substr($review['full_name'] ?? '?', 0, 1))) ?></span>
+                <div class="min-w-0 flex-1">
+                    <p class="flex flex-wrap items-center gap-2 text-sm">
+                        <b><?= e($review['full_name'] ?? 'Không xác định') ?></b>
+                        <span class="text-muted">→</span>
+                        <span class="font-bold text-sky-600 dark:text-sky-300"><?= e($review['product_name'] ?? 'Sản phẩm đã xóa') ?></span>
+                        <?php render_stars((float)$review['rating']); ?>
+                        <?= (int)$review['status'] === 1 ? '<span class="badge badge-mint">Hiển thị</span>' : '<span class="badge badge-ink">Đang ẩn</span>' ?>
+                    </p>
+                    <p class="mt-1 text-sm break-words whitespace-pre-wrap text-ink-600 dark:text-ink-300"><?= e($review['comment'] ?? '') ?: '<span class="italic text-muted">(Không có bình luận)</span>' ?></p>
+                    <p class="mt-1 text-xs text-muted">#<?= (int)$review['id'] ?> · <?= e(date('H:i d/m/Y', strtotime($review['created_at']))) ?></p>
+                </div>
+                <div class="flex gap-2">
+                    <form action="<?= e(url('admin/reviews/toggle.php')) ?>" method="post">
+                        <?= csrf_field() ?>
+                        <input type="hidden" name="id" value="<?= (int)$review['id'] ?>">
+                        <button type="submit" class="btn btn-ghost btn-sm"><i class="ph-bold <?= (int)$review['status'] === 1 ? 'ph-eye-slash' : 'ph-eye' ?>" aria-hidden="true"></i> <?= (int)$review['status'] === 1 ? 'Ẩn' : 'Hiện' ?></button>
+                    </form>
+                    <form action="<?= e(url('admin/reviews/delete.php')) ?>" method="post" data-confirm="Bạn có chắc muốn xóa đánh giá này?">
+                        <?= csrf_field() ?>
+                        <input type="hidden" name="id" value="<?= (int)$review['id'] ?>">
+                        <button type="submit" class="btn btn-danger-ghost btn-sm" aria-label="Xóa đánh giá"><i class="ph-bold ph-trash" aria-hidden="true"></i></button>
+                    </form>
+                </div>
+            </li>
+        <?php endforeach; ?>
+        <?php if (!$reviews): ?>
+            <li class="p-10 text-center text-muted">Chưa có đánh giá nào.</li>
+        <?php endif; ?>
+    </ul>
 </div>
-
-<!-- Danh sách -->
-<div class="card shadow-sm border-0">
-    <div class="card-body">
-
-        <div class="d-flex justify-content-between
-                    align-items-center mb-3">
-            <h5 class="fw-bold mb-0">Danh sách đánh giá</h5>
-
-            <form method="get" class="d-flex gap-2">
-                <select name="status" class="form-select">
-                    <option value="all"
-                        <?= $filter === 'all' ? 'selected' : '' ?>>
-                        Tất cả
-                    </option>
-
-                    <option value="visible"
-                        <?= $filter === 'visible' ? 'selected' : '' ?>>
-                        Hiển thị
-                    </option>
-
-                    <option value="hidden"
-                        <?= $filter === 'hidden' ? 'selected' : '' ?>>
-                        Đang ẩn
-                    </option>
-                </select>
-
-                <button type="submit" class="btn btn-primary">
-                    Lọc
-                </button>
-            </form>
-        </div>
-
-        <div class="table-responsive">
-            <table class="table table-hover align-middle">
-
-                <thead class="table-light">
-                    <tr>
-                        <th>ID</th>
-                        <th>Khách hàng</th>
-                        <th>Sản phẩm</th>
-                        <th>Số sao</th>
-                        <th>Nội dung</th>
-                        <th>Ngày đánh giá</th>
-                        <th>Trạng thái</th>
-                        <th>Thao tác</th>
-                    </tr>
-                </thead>
-
-                <tbody>
-
-                <?php foreach ($reviews as $review): ?>
-                    <tr>
-                        <td>
-                            <?= (int)$review['id'] ?>
-                        </td>
-
-                        <td>
-                            <?= e($review['full_name'] ?? 'Không xác định') ?>
-                        </td>
-
-                        <td>
-                            <?= e($review['product_name'] ?? 'Sản phẩm đã xóa') ?>
-                        </td>
-
-                        <td class="text-warning text-nowrap">
-                            <?= str_repeat('★', (int)$review['rating']) ?>
-                            <span class="text-muted">
-                                (<?= (int)$review['rating'] ?>/5)
-                            </span>
-                        </td>
-
-                        <td style="min-width:180px; max-width:300px;
-                                   white-space:pre-wrap; overflow-wrap:anywhere;"><?= e($review['comment'] ?? '') ?></td>
-
-                        <td class="text-nowrap">
-                            <?= e($review['created_at']) ?>
-                        </td>
-
-                        <td>
-                            <?php if ((int)$review['status'] === 1): ?>
-                                <span class="badge bg-success">
-                                    Hiển thị
-                                </span>
-                            <?php else: ?>
-                                <span class="badge bg-secondary">
-                                    Đang ẩn
-                                </span>
-                            <?php endif; ?>
-                        </td>
-
-                        <td>
-                            <div class="d-flex gap-2">
-
-                                <!-- Ẩn / Hiện -->
-                                <form action="toggle.php"
-                                      method="post">
-                                    <?= csrf_field() ?>
-
-                                    <input type="hidden"
-                                           name="id"
-                                           value="<?= (int)$review['id'] ?>">
-
-                                    <button type="submit"
-                                            class="btn btn-warning btn-sm">
-                                        <i class="bi bi-eye"></i>
-                                        <?= (int)$review['status'] === 1
-                                            ? 'Ẩn' : 'Hiện' ?>
-                                    </button>
-                                </form>
-
-                                <!-- Xóa -->
-                                <form action="delete.php"
-                                      method="post"
-                                      onsubmit="return confirm('Bạn có chắc muốn xóa đánh giá này?');">
-                                    <?= csrf_field() ?>
-
-                                    <input type="hidden"
-                                           name="id"
-                                           value="<?= (int)$review['id'] ?>">
-
-                                    <button type="submit"
-                                            class="btn btn-danger btn-sm">
-                                        <i class="bi bi-trash"></i>
-                                        Xóa
-                                    </button>
-                                </form>
-
-                            </div>
-                        </td>
-                    </tr>
-                <?php endforeach; ?>
-
-                <?php if (!$reviews): ?>
-                    <tr>
-                        <td colspan="8"
-                            class="text-center text-muted py-4">
-                            Chưa có đánh giá nào.
-                        </td>
-                    </tr>
-                <?php endif; ?>
-
-                </tbody>
-            </table>
-        </div>
-
-    </div>
-</div>
-
-<!-- Phân trang -->
-<div class="mt-4">
-    <?= render_pagination($page, $pages) ?>
-</div>
+<?= render_pagination($page, $pages) ?>
 
 <?php require __DIR__ . '/../admin_footer.php'; ?>

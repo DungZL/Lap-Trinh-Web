@@ -102,10 +102,10 @@ function review_mask_name(string $fullName): string
 /** In 5 ngôi sao theo điểm (làm tròn tới nửa sao). */
 function render_stars(float $value): void
 {
-    echo '<span class="kz-stars" aria-hidden="true">';
+    echo '<span class="inline-flex items-center gap-px text-sun-400" aria-hidden="true">';
     for ($i = 1; $i <= 5; $i++) {
-        $icon = $value >= $i ? 'bi-star-fill' : ($value >= $i - 0.5 ? 'bi-star-half' : 'bi-star');
-        echo '<i class="bi ' . $icon . '"></i>';
+        $icon = $value >= $i ? 'ph-fill ph-star' : ($value >= $i - 0.5 ? 'ph-fill ph-star-half' : 'ph-bold ph-star text-ink-200 dark:text-ink-700');
+        echo '<i class="' . $icon . '"></i>';
     }
     echo '</span>';
 }

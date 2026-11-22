@@ -57,14 +57,27 @@ XAMPP/Laragon mặc định tài khoản MySQL là `root`, không mật khẩu. 
 
 ---
 
+### Sửa giao diện (Tailwind CSS)
+Website chạy được ngay **không cần Node.js** vì file CSS đã build sẵn ở `assets/css/app.css` (có trong Git). Chỉ khi sửa class Tailwind trong file PHP/JS hoặc sửa `assets/src/app.css` mới cần build lại:
+```powershell
+cd kiddozone
+npm install        # lần đầu
+npm run watch      # tự build lại mỗi khi lưu file
+npm run build      # build bản thu gọn trước khi commit / deploy
+```
+
+---
+
 ## 2. Hướng dẫn Deploy (InfinityFree / Render)
 
 ### Cách A: InfinityFree (Shared Hosting PHP + MySQL)
 1. Tạo database MySQL mới trong **Control Panel → MySQL Databases** trên InfinityFree và ghi lại `DB_HOST`, `DB_NAME`, `DB_USER`, `DB_PASS`.
-2. Mở **phpMyAdmin** của hosting → Import file `kiddozone/database/kiddozone.sql` (nếu hosting không cho phép lệnh `CREATE DATABASE`, xóa 2 dòng đầu `CREATE DATABASE ...` và `USE kiddozone;` trước khi import trực tiếp vào DB đã tạo).
-3. Upload toàn bộ nội dung trong thư mục `kiddozone/` lên thư mục `htdocs/` của hosting (FTP / File Manager).
+2. Mở **phpMyAdmin** của hosting → chọn database vừa tạo → tab **Import** → chọn file `kiddozone/database/kiddozone_infinityfree.sql` (để **Character set of the file: `utf-8`**) → **Import**. File này đã bỏ lệnh `CREATE DATABASE`/`USE` và ép `utf8mb4` để không bị lỗi tiếng Việt thành dấu `?` trên database mặc định `latin1` của InfinityFree.
+3. Upload toàn bộ nội dung trong thư mục `kiddozone/` lên thư mục `htdocs/` của hosting (FTP / File Manager). Nhớ upload cả file ẩn `.htaccess` (chuyển đường dẫn sai về trang 404) và thư mục `uploads/` (ảnh Admin đã tải lên).
 4. Sao chép `includes/config.local.example.php` thành `includes/config.local.php` trên hosting và điền đúng thông số MySQL vừa tạo; nếu đặt code thẳng vào `htdocs/` của domain chính, đặt `define('BASE_URL_OVERRIDE', '');` (hoặc để `null` tự dò).
 5. Đảm bảo thư mục `uploads/` có quyền ghi (`0755`) và giữ nguyên file `uploads/.htaccess`.
+6. Không cần upload `node_modules/`, `assets/src/`, `package.json`. Nhớ chạy `npm run build` trước khi upload để `assets/css/app.css` là bản mới nhất.
+7. Mã QR chuyển khoản: khai báo `BANK_ID`, `BANK_ACCOUNT_NO`, `BANK_ACCOUNT_NAME` trong `includes/config.local.php` (hoặc biến môi trường) bằng tài khoản thật của shop.
 
 ### Cách B: Render / Container PHP + MySQL
 1. Tạo Web Service dùng PHP 8 (Document Root trỏ tới `kiddozone/`) và kết nối MySQL/MariaDB dịch vụ ngoài (Aiven, Railway, PlanetScale...).
@@ -77,6 +90,8 @@ XAMPP/Laragon mặc định tài khoản MySQL là `root`, không mật khẩu. 
 
 ## 3. Rà soát bảo mật đã áp dụng
 - **SQL Injection:** 100% truy vấn dùng PDO Prepared Statement (`db_query($sql, $params)`), tắt giả lập prepare (`ATTR_EMULATE_PREPARES => false`), ép kiểu `(int)` cho `LIMIT`/`OFFSET`, thoát ký tự đại diện `LIKE` bằng `addcslashes(..., '%_\\')`, danh sách trắng `ORDER BY`.
+- **API JSON (`api/`, `admin/api/`):** dùng chung `csrf_verify()` (sai token trả HTTP 403 dạng JSON), chung logic giỏ hàng với `cart.php` qua `cart_apply()`; giá luôn tính lại ở máy chủ, mã giảm giá được kiểm tra lại và khóa dòng (`FOR UPDATE`) trong transaction đặt hàng.
+- **Xuất CSV:** ô bắt đầu bằng `=`, `+`, `-`, `@` được thêm dấu `'` để Excel không chạy công thức (chống CSV injection).
 - **XSS:** Thoát dữ liệu in ra HTML bằng `e()` (`htmlspecialchars(..., ENT_QUOTES, 'UTF-8')`). Mô tả HTML từ TinyMCE được lọc qua `sanitize_description_html()` (`DOMDocument` chỉ giữ thẻ/thuộc tính an toàn, loại bỏ `<script>`, sự kiện `on*`, `javascript:`, `data:`) cả khi lưu trong Admin lẫn khi hiển thị ở `product.php`.
 - **CSRF:** Mọi form POST (kể cả đăng xuất, xóa, khóa/mở khóa, hủy đơn, wishlist) đều gắn `csrf_field()` và kiểm tra `csrf_verify()` dùng `hash_equals()`.
 - **Xác thực & Phiên (Session):** Băm mật khẩu `password_hash()` / `password_verify()`, `session_regenerate_id(true)` sau đăng nhập, cookie session `httponly` + `SameSite=Lax` + `secure` khi dùng HTTPS, đối chiếu trạng thái `users.status = 1` ở mỗi request để vô hiệu hóa ngay tài khoản bị khóa (`TC14`).
@@ -91,25 +106,30 @@ XAMPP/Laragon mặc định tài khoản MySQL là `root`, không mật khẩu. 
 - Truy vấn: **luôn** dùng prepared statement — `db_query('SELECT ... WHERE id = ?', [$id])`.
 - In dữ liệu ra HTML: **luôn** dùng `<?= e($value) ?>`. Link/redirect dùng `url('...')`, `redirect('...')`.
 - Mọi form POST: `<?= csrf_field() ?>` trong form và `csrf_verify();` ở đầu phần xử lý. Không dùng GET để xóa/thay đổi dữ liệu.
+- Giao diện: dùng class Tailwind và các class dùng chung trong `assets/src/app.css` (`btn btn-primary`, `card`, `input`, `select`, `badge badge-sky`, `alert alert-success`, `table-kz`...). Icon: `<i class="ph-bold ph-heart"></i>` (bộ Phosphor). **Không ghép chuỗi tên class** (ví dụ `'bg-' . $color`), vì Tailwind chỉ tạo CSS cho tên class viết đầy đủ trong code.
+- Truy vấn sản phẩm để in thẻ: `SELECT ' . product_card_columns() . ' FROM products p JOIN categories c ...` rồi `render_product_card($p)`. Giá đang bán: `effective_price($p)` (đã tính flash sale).
 - Thông báo: `flash('success'|'danger'|'warning'|'info', '...')`.
 - Phân trang: `[$offset, $pages, $page] = paginate($total, ITEMS_PER_PAGE_SHOP|ITEMS_PER_PAGE_ADMIN);` và `render_pagination($page, $pages)`.
 - Giá: `format_price($x)`; giá đang bán: `effective_price($product)`.
-- Giỏ hàng: dùng bộ hàm `cart_items()`, `cart_count()`, `cart_set_item()`, `cart_remove_item()`, `cart_clear()`, `merge_session_cart()` trong `includes/functions.php`.
+- Giỏ hàng: dùng bộ hàm `cart_items()`, `cart_count()`, `cart_set_item()`, `cart_remove_item()`, `merge_session_cart()` trong `includes/functions.php`.
 
 ---
 
 ## 5. Cấu trúc thư mục
 ```
 kiddozone/
-├── index.php, products.php, product.php    Trang chủ, danh sách, chi tiết sản phẩm
-├── cart.php, checkout.php                  Giỏ hàng và đặt hàng (transaction)
+├── index.php, products.php, product.php    Trang chủ, danh sách (lọc tuổi/giá), chi tiết sản phẩm
+├── gift-finder.php                         Trợ lý chọn quà
+├── cart.php, checkout.php                  Giỏ hàng (mã giảm giá) và đặt hàng (transaction, VietQR)
 ├── login.php, register.php, logout.php     Đăng nhập, đăng ký, đăng xuất
-├── account/          Trang khách hàng: index, profile, orders, wishlist
-├── admin/            Trang quản trị: admin_header/footer, index, orders.php,
-│                     categories/, products/, orders/, users/
-├── includes/         init, config, config.local.example, db, functions, auth,
-│                     header, footer, product_card, recently_viewed, wishlist
-├── assets/           css/, js/, img/, vendor/tinymce/
-├── uploads/          Ảnh sản phẩm do Admin tải lên (.htaccess chặn chạy PHP)
-└── database/         kiddozone.sql (10 bảng + dữ liệu mẫu)
+├── api/              JSON cho app.js: cart, search, product, products, coupon
+├── account/          Trang khách hàng: profile, orders (dòng thời gian), wishlist, review
+├── admin/            admin_header/footer, index (dashboard), orders.php, orders/ (export, invoice),
+│                     categories/, products/ (_form dùng chung), coupons/, users/, reviews/, api/
+├── includes/         init, config, db, functions, auth, store, head, header, footer,
+│                     account_nav, auth_layout, product_card, recently_viewed, wishlist, reviews
+├── assets/           src/app.css (nguồn Tailwind), css/app.css (đã build), js/, img/placeholder.svg (ảnh mặc định), vendor/tinymce/
+├── uploads/          Ảnh sản phẩm (tự đổi tên & tự nén <= 2MB khi upload, .htaccess chặn chạy PHP)
+├── database/         kiddozone.sql, kiddozone_infinityfree.sql (12 bảng + dữ liệu mẫu)
+└── package.json      Lệnh build Tailwind (npm run build / npm run watch)
 ```

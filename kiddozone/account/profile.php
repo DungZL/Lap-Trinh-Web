@@ -79,120 +79,72 @@ if (is_post()) {
 }
 
 $pageTitle = 'Hồ sơ cá nhân';
+$accountTab = 'profile';
 require __DIR__ . '/../includes/header.php';
+require __DIR__ . '/../includes/account_nav.php';
 ?>
 
-<div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-4">
-    <h1 class="kz-section-title mb-0">Hồ sơ cá nhân</h1>
-    <div class="d-flex flex-wrap gap-2">
-        <a class="btn btn-sm btn-primary" href="<?= e(url('account/profile.php')) ?>">
-            <i class="bi bi-person-gear me-1"></i> Hồ sơ
-        </a>
-        <a class="btn btn-sm btn-outline-secondary" href="<?= e(url('account/orders.php')) ?>">
-            <i class="bi bi-receipt me-1"></i> Đơn hàng của tôi
-        </a>
-        <a class="btn btn-sm btn-outline-secondary" href="<?= e(url('account/wishlist.php')) ?>">
-            <i class="bi bi-heart me-1"></i> Yêu thích
-        </a>
-    </div>
-</div>
+<div class="grid gap-6 lg:grid-cols-[1.4fr_1fr]">
+    <section class="card p-6 sm:p-8" data-reveal>
+        <h2 class="mb-5 flex items-center gap-3 font-display text-xl font-semibold"><span class="grid size-9 place-items-center rounded-xl bg-sky-100 text-sky-600 dark:bg-sky-500/15"><i class="ph-fill ph-identification-card" aria-hidden="true"></i></span> Thông tin cá nhân</h2>
 
-<div class="row g-4">
-    <div class="col-lg-7">
-        <div class="card border-0 shadow-sm h-100">
-            <div class="card-body p-4">
-                <h2 class="h5 fw-bold mb-3">Thông tin cá nhân</h2>
+        <?php if ($profileErrors): ?>
+            <div class="alert alert-danger mb-4" role="alert"><i class="ph-fill ph-warning-circle text-lg" aria-hidden="true"></i><ul class="list-disc pl-4"><?php foreach ($profileErrors as $err): ?><li><?= e($err) ?></li><?php endforeach; ?></ul></div>
+        <?php endif; ?>
 
-                <?php if ($profileErrors): ?>
-                    <div class="alert alert-danger" role="alert">
-                        <ul class="mb-0 ps-3">
-                            <?php foreach ($profileErrors as $err): ?>
-                                <li><?= e($err) ?></li>
-                            <?php endforeach; ?>
-                        </ul>
-                    </div>
-                <?php endif; ?>
-
-                <form method="post" action="<?= e(url('account/profile.php')) ?>">
-                    <?= csrf_field() ?>
-                    <input type="hidden" name="action" value="update_profile">
-
-                    <div class="mb-3">
-                        <label class="form-label" for="email">Email</label>
-                        <input type="email" id="email" class="form-control bg-light"
-                               value="<?= e($profile['email']) ?>" readonly disabled>
-                    </div>
-
-                    <div class="mb-3">
-                        <label class="form-label" for="full_name">Họ và tên</label>
-                        <input type="text" id="full_name" name="full_name" class="form-control"
-                               maxlength="100" value="<?= e($fullName) ?>" required>
-                    </div>
-
-                    <div class="mb-3">
-                        <label class="form-label" for="phone">Số điện thoại</label>
-                        <input type="text" id="phone" name="phone" class="form-control"
-                               maxlength="15" value="<?= e($phone) ?>" placeholder="VD: 0912345678">
-                    </div>
-
-                    <div class="mb-4">
-                        <label class="form-label" for="address">Địa chỉ giao hàng mặc định</label>
-                        <textarea id="address" name="address" class="form-control" rows="2"
-                                  maxlength="255" placeholder="Số nhà, đường, phường/xã, quận/huyện, tỉnh/thành"><?= e($address) ?></textarea>
-                    </div>
-
-                    <button type="submit" class="btn kz-btn-register">
-                        <i class="bi bi-save me-1"></i> Lưu thay đổi
-                    </button>
-                </form>
+        <form method="post" action="<?= e(url('account/profile.php')) ?>" class="grid gap-4 sm:grid-cols-2">
+            <?= csrf_field() ?>
+            <input type="hidden" name="action" value="update_profile">
+            <div class="sm:col-span-2">
+                <label class="label" for="email">Email</label>
+                <input type="email" id="email" class="input" value="<?= e($profile['email']) ?>" readonly disabled>
             </div>
-        </div>
-    </div>
-
-    <div class="col-lg-5">
-        <div class="card border-0 shadow-sm h-100">
-            <div class="card-body p-4">
-                <h2 class="h5 fw-bold mb-3">Đổi mật khẩu</h2>
-
-                <?php if ($passwordErrors): ?>
-                    <div class="alert alert-danger" role="alert">
-                        <ul class="mb-0 ps-3">
-                            <?php foreach ($passwordErrors as $err): ?>
-                                <li><?= e($err) ?></li>
-                            <?php endforeach; ?>
-                        </ul>
-                    </div>
-                <?php endif; ?>
-
-                <form method="post" action="<?= e(url('account/profile.php')) ?>">
-                    <?= csrf_field() ?>
-                    <input type="hidden" name="action" value="change_password">
-
-                    <div class="mb-3">
-                        <label class="form-label" for="current_password">Mật khẩu hiện tại</label>
-                        <input type="password" id="current_password" name="current_password" class="form-control" required>
-                    </div>
-
-                    <div class="mb-3">
-                        <label class="form-label" for="new_password">Mật khẩu mới</label>
-                        <input type="password" id="new_password" name="new_password" class="form-control"
-                               minlength="8" required>
-                        <div class="form-text">Tối thiểu 8 ký tự, gồm cả chữ và số.</div>
-                    </div>
-
-                    <div class="mb-4">
-                        <label class="form-label" for="confirm_password">Xác nhận mật khẩu mới</label>
-                        <input type="password" id="confirm_password" name="confirm_password" class="form-control"
-                               minlength="8" required>
-                    </div>
-
-                    <button type="submit" class="btn btn-outline-primary">
-                        <i class="bi bi-key me-1"></i> Cập nhật mật khẩu
-                    </button>
-                </form>
+            <div>
+                <label class="label" for="full_name">Họ và tên</label>
+                <input type="text" id="full_name" name="full_name" class="input" maxlength="100" value="<?= e($fullName) ?>" required>
             </div>
-        </div>
-    </div>
+            <div>
+                <label class="label" for="phone">Số điện thoại</label>
+                <input type="tel" id="phone" name="phone" class="input" maxlength="15" value="<?= e($phone) ?>" placeholder="VD: 0912345678">
+            </div>
+            <div class="sm:col-span-2">
+                <label class="label" for="address">Địa chỉ giao hàng mặc định</label>
+                <textarea id="address" name="address" class="textarea" rows="2" maxlength="255" placeholder="Số nhà, đường, phường/xã, quận/huyện, tỉnh/thành"><?= e($address) ?></textarea>
+            </div>
+            <div class="sm:col-span-2">
+                <button type="submit" class="btn btn-primary"><i class="ph-bold ph-floppy-disk" aria-hidden="true"></i> Lưu thay đổi</button>
+            </div>
+        </form>
+        <p class="mt-6 text-xs text-muted">Thành viên từ <?= e(date('d/m/Y', strtotime($profile['created_at']))) ?></p>
+    </section>
+
+    <section class="card p-6 sm:p-8" data-reveal x-data="{ show: false }">
+        <h2 class="mb-5 flex items-center gap-3 font-display text-xl font-semibold"><span class="grid size-9 place-items-center rounded-xl bg-coral-100 text-price dark:bg-coral-500/15"><i class="ph-fill ph-lock-key" aria-hidden="true"></i></span> Đổi mật khẩu</h2>
+
+        <?php if ($passwordErrors): ?>
+            <div class="alert alert-danger mb-4" role="alert"><i class="ph-fill ph-warning-circle text-lg" aria-hidden="true"></i><ul class="list-disc pl-4"><?php foreach ($passwordErrors as $err): ?><li><?= e($err) ?></li><?php endforeach; ?></ul></div>
+        <?php endif; ?>
+
+        <form method="post" action="<?= e(url('account/profile.php')) ?>" class="space-y-4">
+            <?= csrf_field() ?>
+            <input type="hidden" name="action" value="change_password">
+            <div>
+                <label class="label" for="current_password">Mật khẩu hiện tại</label>
+                <input :type="show ? 'text' : 'password'" type="password" id="current_password" name="current_password" class="input" required autocomplete="current-password">
+            </div>
+            <div>
+                <label class="label" for="new_password">Mật khẩu mới</label>
+                <input :type="show ? 'text' : 'password'" type="password" id="new_password" name="new_password" class="input" minlength="8" required autocomplete="new-password">
+                <p class="help">Tối thiểu 8 ký tự, gồm cả chữ và số.</p>
+            </div>
+            <div>
+                <label class="label" for="confirm_password">Xác nhận mật khẩu mới</label>
+                <input :type="show ? 'text' : 'password'" type="password" id="confirm_password" name="confirm_password" class="input" minlength="8" required autocomplete="new-password">
+            </div>
+            <label class="flex items-center gap-2 text-sm font-bold text-ink-500"><input type="checkbox" class="checkbox" x-model="show"> Hiện mật khẩu</label>
+            <button type="submit" class="btn btn-ghost"><i class="ph-bold ph-key" aria-hidden="true"></i> Cập nhật mật khẩu</button>
+        </form>
+    </section>
 </div>
 
 <?php require __DIR__ . '/../includes/footer.php'; ?>

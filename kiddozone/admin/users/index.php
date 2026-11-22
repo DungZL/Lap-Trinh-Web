@@ -92,136 +92,76 @@ $users = db_query(
 
 $currentAdminId = (int)current_user()['id'];
 $pageTitle = 'Quản lý người dùng';
+$pageSubtitle = 'Tổng cộng ' . $total . ' tài khoản';
 require __DIR__ . '/../admin_header.php';
+$keepQs = array_filter(['q' => $search, 'role' => $roleFilter, 'status' => $statusFilter], fn($v) => $v !== '');
 ?>
 
-<div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-4">
-    <h2 class="fw-bold mb-0">Quản lý người dùng</h2>
-    <span class="text-muted">Tổng: <strong><?= $total ?></strong> tài khoản</span>
-</div>
-
-<form method="get" action="<?= e(url('admin/users/index.php')) ?>" class="row g-2 mb-4">
-    <div class="col-md-5">
-        <input type="search" name="q" class="form-control" maxlength="100"
-               value="<?= e($search) ?>" placeholder="Tìm theo họ tên, email hoặc số điện thoại">
-    </div>
-    <div class="col-6 col-md-2">
-        <select name="role" class="form-select" aria-label="Lọc vai trò">
-            <option value="">Tất cả vai trò</option>
-            <option value="customer" <?= $roleFilter === 'customer' ? 'selected' : '' ?>>Khách hàng</option>
-            <option value="admin" <?= $roleFilter === 'admin' ? 'selected' : '' ?>>Quản trị viên</option>
+<div class="card">
+    <form method="get" action="<?= e(url('admin/users/index.php')) ?>" class="flex flex-wrap gap-2 border-b border-ink-100 p-4 dark:border-ink-800">
+        <div class="relative min-w-60 flex-1">
+            <i class="ph-bold ph-magnifying-glass absolute top-1/2 left-4 -translate-y-1/2 text-muted" aria-hidden="true"></i>
+            <input type="search" name="q" class="input pl-11" maxlength="100" value="<?= e($search) ?>" placeholder="Tìm theo họ tên, email hoặc số điện thoại" aria-label="Tìm người dùng">
+        </div>
+        <select name="role" class="select w-auto" aria-label="Lọc vai trò" data-autosubmit>
+            <option value="" data-icon="ph-users-three">Tất cả vai trò</option>
+            <option value="customer" data-icon="ph-user" <?= $roleFilter === 'customer' ? 'selected' : '' ?>>Khách hàng</option>
+            <option value="admin" data-icon="ph-crown" <?= $roleFilter === 'admin' ? 'selected' : '' ?>>Quản trị viên</option>
         </select>
-    </div>
-    <div class="col-6 col-md-2">
-        <select name="status" class="form-select" aria-label="Lọc trạng thái">
-            <option value="">Tất cả trạng thái</option>
-            <option value="1" <?= $statusFilter === '1' ? 'selected' : '' ?>>Hoạt động</option>
-            <option value="0" <?= $statusFilter === '0' ? 'selected' : '' ?>>Đã khóa</option>
+        <select name="status" class="select w-auto" aria-label="Lọc trạng thái" data-autosubmit>
+            <option value="" data-icon="ph-funnel">Tất cả trạng thái</option>
+            <option value="1" data-icon="ph-check-circle" <?= $statusFilter === '1' ? 'selected' : '' ?>>Hoạt động</option>
+            <option value="0" data-icon="ph-lock" <?= $statusFilter === '0' ? 'selected' : '' ?>>Đã khóa</option>
         </select>
-    </div>
-    <div class="col-md-auto">
-        <button type="submit" class="btn btn-primary">
-            <i class="bi bi-search"></i> Tìm kiếm
-        </button>
-        <?php if ($search !== '' || $roleFilter !== '' || $statusFilter !== ''): ?>
-            <a href="<?= e(url('admin/users/index.php')) ?>" class="btn btn-outline-secondary">Xóa lọc</a>
-        <?php endif; ?>
-    </div>
-</form>
+        <button type="submit" class="btn btn-primary"><i class="ph-bold ph-magnifying-glass" aria-hidden="true"></i> Tìm</button>
+        <?php if ($keepQs): ?><a href="<?= e(url('admin/users/index.php')) ?>" class="btn btn-ghost">Xóa lọc</a><?php endif; ?>
+    </form>
 
-<div class="card shadow-sm border-0">
-    <div class="card-body table-responsive">
-        <table class="table table-hover align-middle mb-0">
-            <thead class="table-light">
-                <tr>
-                    <th>ID</th>
-                    <th>Họ tên</th>
-                    <th>Email</th>
-                    <th>Điện thoại</th>
-                    <th>Vai trò</th>
-                    <th class="text-center">Số đơn</th>
-                    <th>Trạng thái</th>
-                    <th>Ngày tạo</th>
-                    <th>Thao tác</th>
-                </tr>
-            </thead>
+    <div class="overflow-x-auto p-2">
+        <table class="table-kz">
+            <thead><tr><th>Người dùng</th><th>Điện thoại</th><th>Vai trò</th><th class="text-center">Số đơn</th><th>Trạng thái</th><th>Ngày tạo</th><th class="text-right">Thao tác</th></tr></thead>
             <tbody>
                 <?php foreach ($users as $u): ?>
-                    <?php
-                    $uid      = (int)$u['id'];
-                    $isActive = (int)$u['status'] === 1;
-                    $isSelf   = $uid === $currentAdminId;
-                    ?>
+                    <?php $uid = (int)$u['id']; $isActive = (int)$u['status'] === 1; $isSelf = $uid === $currentAdminId; ?>
                     <tr>
-                        <td><?= $uid ?></td>
-                        <td class="fw-semibold">
-                            <?= e($u['full_name']) ?>
-                            <?php if ($isSelf): ?>
-                                <span class="badge bg-info text-dark ms-1">Bạn</span>
-                            <?php endif; ?>
-                        </td>
-                        <td><?= e($u['email']) ?></td>
-                        <td><?= e($u['phone'] ?? '—') ?></td>
                         <td>
-                            <?php if ($u['role'] === 'admin'): ?>
-                                <span class="badge bg-primary">Admin</span>
-                            <?php else: ?>
-                                <span class="badge bg-light text-dark border">Khách hàng</span>
-                            <?php endif; ?>
+                            <div class="flex items-center gap-3">
+                                <span class="grid size-10 shrink-0 place-items-center rounded-full bg-gradient-to-br <?= $u['role'] === 'admin' ? 'from-sky-600 to-grape-600' : 'from-sun-300 to-coral-300' ?> font-extrabold text-ink-900"><?= e(mb_strtoupper(mb_substr($u['full_name'], 0, 1))) ?></span>
+                                <div><b><?= e($u['full_name']) ?></b><?php if ($isSelf): ?> <span class="badge badge-sky">Bạn</span><?php endif; ?><br><span class="text-xs text-muted"><?= e($u['email']) ?></span></div>
+                            </div>
                         </td>
-                        <td class="text-center"><?= (int)$u['order_count'] ?></td>
-                        <td>
-                            <?php if ($isActive): ?>
-                                <span class="badge bg-success">Hoạt động</span>
-                            <?php else: ?>
-                                <span class="badge bg-danger">Đã khóa</span>
-                            <?php endif; ?>
-                        </td>
-                        <td><?= e(date('d/m/Y', strtotime($u['created_at']))) ?></td>
-                        <td class="text-nowrap">
-                            <a href="edit.php?id=<?= $uid ?>" class="btn btn-warning btn-sm">
-                                <i class="bi bi-pencil-square"></i> Sửa
-                            </a>
-
+                        <td class="text-ink-500"><?= e($u['phone'] ?? '—') ?></td>
+                        <td><?= $u['role'] === 'admin' ? '<span class="badge badge-grape"><i class="ph-fill ph-crown" aria-hidden="true"></i> Admin</span>' : '<span class="badge badge-ink">Khách hàng</span>' ?></td>
+                        <td class="text-center font-bold"><?= (int)$u['order_count'] ?></td>
+                        <td><?= $isActive ? '<span class="badge badge-mint">Hoạt động</span>' : '<span class="badge badge-coral"><i class="ph-fill ph-lock" aria-hidden="true"></i> Đã khóa</span>' ?></td>
+                        <td class="text-ink-500"><?= e(date('d/m/Y', strtotime($u['created_at']))) ?></td>
+                        <td class="text-right whitespace-nowrap">
+                            <a href="<?= e(url('admin/users/edit.php?id=' . $uid)) ?>" class="btn btn-ghost btn-sm" aria-label="Sửa <?= e($u['full_name']) ?>"><i class="ph-bold ph-pencil-simple" aria-hidden="true"></i></a>
                             <?php if (!$isSelf): ?>
-                                <form action="<?= e(url('admin/users/index.php' . ($search !== '' || $roleFilter !== '' || $statusFilter !== '' ? '?' . http_build_query(array_filter(['q' => $search, 'role' => $roleFilter, 'status' => $statusFilter], fn($v) => $v !== '')) : ''))) ?>"
-                                      method="post" class="d-inline"
+                                <form action="<?= e(url('admin/users/index.php' . ($keepQs ? '?' . http_build_query($keepQs) : ''))) ?>" method="post" class="inline"
                                       data-confirm="<?= e($isActive ? 'Bạn có chắc muốn khóa tài khoản này?' : 'Mở khóa tài khoản này?') ?>">
                                     <?= csrf_field() ?>
                                     <input type="hidden" name="action" value="toggle_status">
                                     <input type="hidden" name="id" value="<?= $uid ?>">
                                     <input type="hidden" name="page" value="<?= $page ?>">
-                                    <button type="submit" class="btn btn-sm <?= $isActive ? 'btn-outline-secondary' : 'btn-outline-success' ?>">
-                                        <i class="bi <?= $isActive ? 'bi-lock' : 'bi-unlock' ?>"></i>
-                                        <?= $isActive ? 'Khóa' : 'Mở khóa' ?>
-                                    </button>
+                                    <button type="submit" class="btn btn-ghost btn-sm" title="<?= $isActive ? 'Khóa' : 'Mở khóa' ?>"><i class="ph-bold <?= $isActive ? 'ph-lock' : 'ph-lock-open text-ok' ?>" aria-hidden="true"></i> <?= $isActive ? 'Khóa' : 'Mở khóa' ?></button>
                                 </form>
-
-                                <form action="delete.php" method="post" class="d-inline"
-                                      data-confirm="Bạn có chắc muốn xóa người dùng này?">
+                                <form action="<?= e(url('admin/users/delete.php')) ?>" method="post" class="inline" data-confirm="Bạn có chắc muốn xóa người dùng này?">
                                     <?= csrf_field() ?>
                                     <input type="hidden" name="id" value="<?= $uid ?>">
-                                    <button type="submit" class="btn btn-danger btn-sm">
-                                        <i class="bi bi-trash"></i> Xóa
-                                    </button>
+                                    <button type="submit" class="btn btn-danger-ghost btn-sm" aria-label="Xóa <?= e($u['full_name']) ?>"><i class="ph-bold ph-trash" aria-hidden="true"></i></button>
                                 </form>
                             <?php endif; ?>
                         </td>
                     </tr>
                 <?php endforeach; ?>
-
                 <?php if (!$users): ?>
-                    <tr>
-                        <td colspan="9" class="text-center text-muted py-4">Không tìm thấy người dùng phù hợp.</td>
-                    </tr>
+                    <tr><td colspan="7" class="py-10 text-center text-muted">Không tìm thấy người dùng phù hợp.</td></tr>
                 <?php endif; ?>
             </tbody>
         </table>
     </div>
 </div>
-
-<div class="mt-4">
-    <?= render_pagination($page, $pages) ?>
-</div>
+<?= render_pagination($page, $pages) ?>
 
 <?php require __DIR__ . '/../admin_footer.php'; ?>
